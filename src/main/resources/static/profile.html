@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - BookifyAI</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-icon">📖</div>
+                    <h1 class="logo">Bookify<span class="logo-ai">AI</span></h1>
+                </div>
+                <p class="tagline">Create Personalized E-Books with AI</p>
+                <div class="header-actions">
+                    <a href="/" class="btn btn-secondary">🏠 Home</a>
+                    <button class="btn btn-secondary" id="logout-btn">🚪 Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="profile-header">
+                <div class="profile-info">
+                    <h2 id="user-name">Loading...</h2>
+                    <p id="user-email">Loading...</p>
+                    <p id="user-created">Loading...</p>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="total-books">0</span>
+                        <span class="stat-label">Total Books</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">My Books</h2>
+                    <button class="btn btn-secondary" id="refresh-btn">🔄 Refresh</button>
+                </div>
+                <div id="books-content" class="history-content">
+                    <div class="loading">Loading...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/profile.js"></script>
+</body>
+</html>
+

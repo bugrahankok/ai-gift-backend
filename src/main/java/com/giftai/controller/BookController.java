@@ -1,5 +1,6 @@
 package com.giftai.controller;
 
+import com.giftai.entity.UserEntity;
 import com.giftai.model.BookRequest;
 import com.giftai.model.BookResponse;
 import com.giftai.service.BookService;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -30,9 +32,10 @@ public class BookController {
     
     @PostMapping("/generate")
     @Operation(summary = "Generate a new personalized book", description = "Generates a personalized e-book based on recipient information")
-    public ResponseEntity<?> generateBook(@Valid @RequestBody BookRequest request) {
+    public ResponseEntity<?> generateBook(@Valid @RequestBody BookRequest request, Authentication authentication) {
         try {
-            BookResponse response = bookService.generateBook(request);
+            UserEntity user = (UserEntity) authentication.getPrincipal();
+            BookResponse response = bookService.generateBook(request, user.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -41,23 +44,26 @@ public class BookController {
     }
     
     @GetMapping("/history")
-    @Operation(summary = "Get book history", description = "Retrieves all generated books")
-    public ResponseEntity<List<BookResponse>> getBookHistory() {
-        List<BookResponse> books = bookService.getAllBooks();
+    @Operation(summary = "Get book history", description = "Retrieves all generated books for the authenticated user")
+    public ResponseEntity<List<BookResponse>> getBookHistory(Authentication authentication) {
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+        List<BookResponse> books = bookService.getUserBooks(user.getId());
         return ResponseEntity.ok(books);
     }
     
     @GetMapping("/{id}")
     @Operation(summary = "Get book by ID", description = "Retrieves a specific book by its ID")
-    public ResponseEntity<BookResponse> getBookById(@PathVariable Long id) {
-        BookResponse book = bookService.getBookById(id);
+    public ResponseEntity<BookResponse> getBookById(@PathVariable Long id, Authentication authentication) {
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+        BookResponse book = bookService.getBookById(id, user.getId());
         return ResponseEntity.ok(book);
     }
     
     @GetMapping("/{id}/pdf")
     @Operation(summary = "Download PDF", description = "Downloads the PDF file for a book")
-    public ResponseEntity<Resource> downloadPdf(@PathVariable Long id) {
-        BookResponse book = bookService.getBookById(id);
+    public ResponseEntity<Resource> downloadPdf(@PathVariable Long id, Authentication authentication) {
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+        BookResponse book = bookService.getBookById(id, user.getId());
         
         if (book.getPdfPath() == null || !book.getPdfReady()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -82,8 +88,9 @@ public class BookController {
     
     @GetMapping("/{id}/status")
     @Operation(summary = "Check PDF status", description = "Checks if PDF is ready for download")
-    public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id) {
-        BookResponse book = bookService.getBookById(id);
+    public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id, Authentication authentication) {
+        UserEntity user = (UserEntity) authentication.getPrincipal();
+        BookResponse book = bookService.getBookById(id, user.getId());
         return ResponseEntity.ok(Map.of(
             "pdfReady", book.getPdfReady(),
             "pdfPath", book.getPdfPath() != null ? book.getPdfPath() : ""

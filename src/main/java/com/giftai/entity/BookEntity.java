@@ -49,6 +49,10 @@ public class BookEntity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

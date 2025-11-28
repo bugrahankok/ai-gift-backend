@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BookifyAI</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-icon">📖</div>
+                    <h1 class="logo">Bookify<span class="logo-ai">AI</span></h1>
+                </div>
+                <p class="tagline">Create Personalized E-Books with AI</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="auth-card">
+                <h2 class="card-title">Login</h2>
+                <form id="login-form" class="gift-form">
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" id="email" name="email" class="form-input" 
+                               placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" class="form-input" 
+                               placeholder="Enter your password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="login-btn">
+                        <span class="btn-text">Login</span>
+                        <span class="btn-loader" style="display: none;">⏳ Logging in...</span>
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="/register.html" class="auth-link">Register here</a></p>
+                    <p><a href="/" class="auth-link">← Back to Home</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/auth.js"></script>
+</body>
+</html>
+

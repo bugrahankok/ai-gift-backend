@@ -3,11 +3,14 @@ let currentBookId = null;
 let pdfCheckInterval = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
     checkConsent();
     initializeTabs();
     initializeForm();
     loadHistory();
     initializeModals();
+    setupLogout();
+    updateHeader();
 });
 
 function initializeTabs() {
@@ -44,6 +47,12 @@ function initializeForm() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
+        if (!isAuthenticated()) {
+            showToast('Please login to create books', 'error');
+            document.getElementById('login-required-message').style.display = 'block';
+            return;
+        }
+        
         const formData = new FormData(form);
         const bookData = {
             name: formData.get('name'),
@@ -72,9 +81,7 @@ function initializeForm() {
             console.log('Sending request:', bookData);
             const response = await fetch(`${API_BASE_URL}/generate`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(bookData)
             });
 
@@ -190,7 +197,15 @@ function showPdfControls(book) {
     const viewBtn = document.getElementById('view-pdf-btn');
     
     downloadBtn.onclick = () => {
-        window.open(`${API_BASE_URL}/${book.bookId}/pdf`, '_blank');
+        const token = localStorage.getItem('authToken');
+        const url = `${API_BASE_URL}/${book.bookId}/pdf`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.download = `book-${book.bookId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
     
     viewBtn.onclick = () => {
@@ -298,14 +313,18 @@ function startPdfStatusCheck(bookId) {
     
     pdfCheckInterval = setInterval(async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/${bookId}/status`);
+            const response = await fetch(`${API_BASE_URL}/${bookId}/status`, {
+                headers: getAuthHeaders()
+            });
             if (response.ok) {
                 const status = await response.json();
                 if (status.pdfReady) {
                     clearInterval(pdfCheckInterval);
                     pdfCheckInterval = null;
                     
-                    const bookResponse = await fetch(`${API_BASE_URL}/${bookId}`);
+                    const bookResponse = await fetch(`${API_BASE_URL}/${bookId}`, {
+                        headers: getAuthHeaders()
+                    });
                     const book = await bookResponse.json();
                     showPdfControls(book);
                     showToast('PDF is ready for download!', 'success');
@@ -321,9 +340,25 @@ async function loadHistory() {
     const historyContent = document.getElementById('history-content');
     historyContent.innerHTML = '<div class="loading">Loading...</div>';
 
+    if (!isAuthenticated()) {
+        historyContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔒</div>
+                <div class="empty-state-text">Please <a href="/login.html" class="auth-link">login</a> to view your book history</div>
+            </div>
+        `;
+        return;
+    }
+
     try {
-        const response = await fetch(`${API_BASE_URL}/history`);
+        const response = await fetch(`${API_BASE_URL}/history`, {
+            headers: getAuthHeaders()
+        });
         if (!response.ok) {
+            if (response.status === 401) {
+                handleAuthError();
+                return;
+            }
             throw new Error('Failed to load history');
         }
 
@@ -375,7 +410,7 @@ function displayHistory(books) {
                     ${escapeHtml(contentPreview)}${hasMore ? '...' : ''}
                 </div>
                 ${hasMore ? `<button class="btn btn-secondary" style="margin-top: 10px; width: 100%;" onclick="toggleContent(${book.bookId}, ${JSON.stringify(book.content)})">Show More</button>` : ''}
-                ${book.pdfReady ? `<a href="${API_BASE_URL}/${book.bookId}/pdf" target="_blank" class="btn btn-primary" style="margin-top: 10px; width: 100%; text-decoration: none; display: inline-block; text-align: center;">📥 Download PDF</a>` : '<p style="margin-top: 10px; color: var(--text-secondary);">⏳ PDF is being generated...</p>'}
+                ${book.pdfReady ? `<button onclick="downloadBookPdf(${book.bookId})" class="btn btn-primary" style="margin-top: 10px; width: 100%;">📥 Download PDF</button>` : '<p style="margin-top: 10px; color: var(--text-secondary);">⏳ PDF is being generated...</p>'}
             </div>
         `;
     }).join('');
@@ -626,4 +661,76 @@ function initializeModals() {
             }
         }
     });
+}
+
+function checkAuth() {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        return;
+    }
+}
+
+function isAuthenticated() {
+    return !!localStorage.getItem('authToken');
+}
+
+function getAuthHeaders() {
+    const token = localStorage.getItem('authToken');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+    };
+}
+
+function handleAuthError() {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userId');
+    document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    showToast('Session expired. Please login again.', 'error');
+    setTimeout(() => {
+        window.location.href = '/login.html';
+    }, 2000);
+}
+
+function updateHeader() {
+    const headerActions = document.getElementById('header-actions');
+    const headerLogin = document.getElementById('header-login');
+    
+    if (isAuthenticated()) {
+        if (headerActions) headerActions.style.display = 'flex';
+        if (headerLogin) headerLogin.style.display = 'none';
+    } else {
+        if (headerActions) headerActions.style.display = 'none';
+        if (headerLogin) headerLogin.style.display = 'flex';
+    }
+}
+
+function setupLogout() {
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userId');
+            document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            showToast('Logged out successfully', 'success');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        });
+    }
+}
+
+function downloadBookPdf(bookId) {
+    const url = `${API_BASE_URL}/${bookId}/pdf`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.download = `book-${bookId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }

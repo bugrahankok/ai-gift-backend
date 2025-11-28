@@ -19,6 +19,14 @@
                     <h1 class="logo">Bookify<span class="logo-ai">AI</span></h1>
                 </div>
                 <p class="tagline">Create Personalized E-Books with AI</p>
+                <div class="header-actions" id="header-actions" style="display: none;">
+                    <a href="/profile.html" class="btn btn-secondary">👤 Profile</a>
+                    <button class="btn btn-secondary" id="logout-btn">🚪 Logout</button>
+                </div>
+                <div class="header-actions" id="header-login" style="display: none;">
+                    <a href="/login.html" class="btn btn-primary">Login</a>
+                    <a href="/register.html" class="btn btn-secondary">Register</a>
+                </div>
             </div>
         </header>
 
@@ -189,6 +197,9 @@
                                       rows="3" placeholder="e.g., Brown hair, blue eyes, tall, wears glasses... (This will be used to create a visual description in the story)"></textarea>
                         </div>
 
+                        <div id="login-required-message" class="login-required" style="display: none;">
+                            <p>⚠️ Please <a href="/login.html" class="auth-link">login</a> or <a href="/register.html" class="auth-link">register</a> to create books.</p>
+                        </div>
                         <button type="submit" class="btn btn-primary" id="submit-btn">
                             <span class="btn-text">Create Book</span>
                             <span class="btn-loader" style="display: none;">⏳ Generating...</span>

@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface BookRepository extends JpaRepository<BookEntity, Long> {
     List<BookEntity> findAllByOrderByCreatedAtDesc();
+    List<BookEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
 }
 
