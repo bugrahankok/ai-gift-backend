@@ -105,6 +105,26 @@ public class DatabaseMigration {
                 log.info("✅ 'user_id' column already exists in books table");
             }
             
+            // Check if is_public column exists in books table
+            String checkIsPublicColumnSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name = 'books' AND column_name = 'is_public'
+                """;
+            
+            Integer isPublicColumnExists = jdbcTemplate.queryForObject(checkIsPublicColumnSql, Integer.class);
+            
+            if (isPublicColumnExists == null || isPublicColumnExists == 0) {
+                log.info("Adding missing 'is_public' column to books table...");
+                
+                // Add is_public column (default to false for existing books)
+                jdbcTemplate.execute("ALTER TABLE books ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT false NOT NULL");
+                
+                log.info("✅ Successfully added 'is_public' column to books table");
+            } else {
+                log.info("✅ 'is_public' column already exists in books table");
+            }
+            
             log.info("Database migration completed successfully");
             
         } catch (Exception e) {

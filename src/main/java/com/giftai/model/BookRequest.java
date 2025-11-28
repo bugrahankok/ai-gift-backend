@@ -30,5 +30,7 @@ public class BookRequest {
     private String giver;
     
     private String appearance;
+    
+    private Boolean isPublic;
 }
 

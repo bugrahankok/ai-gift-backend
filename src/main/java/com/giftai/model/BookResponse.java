@@ -22,6 +22,8 @@ public class BookResponse {
     private String content;
     private String pdfPath;
     private Boolean pdfReady;
+    private Boolean isPublic;
+    private String authorName;
     private LocalDateTime createdAt;
 }
 

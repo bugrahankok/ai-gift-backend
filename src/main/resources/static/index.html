@@ -33,7 +33,8 @@
         <main class="main-content">
             <div class="tabs">
                 <button class="tab-btn active" data-tab="create">Create Book</button>
-                <button class="tab-btn" data-tab="history">History</button>
+                <button class="tab-btn" data-tab="history">My Books</button>
+                <button class="tab-btn" data-tab="discover">Discover</button>
             </div>
 
             <div class="tab-content active" id="create-tab">
@@ -197,6 +198,28 @@
                                       rows="3" placeholder="e.g., Brown hair, blue eyes, tall, wears glasses... (This will be used to create a visual description in the story)"></textarea>
                         </div>
 
+                        <div class="form-group">
+                            <label class="form-label">Visibility</label>
+                            <div class="visibility-options">
+                                <label class="visibility-option">
+                                    <input type="radio" name="visibility" value="public" id="visibility-public" checked>
+                                    <div class="visibility-card">
+                                        <div class="visibility-icon">🌍</div>
+                                        <div class="visibility-label">Public</div>
+                                        <div class="visibility-description">Everyone can discover and read this book</div>
+                                    </div>
+                                </label>
+                                <label class="visibility-option">
+                                    <input type="radio" name="visibility" value="private" id="visibility-private">
+                                    <div class="visibility-card">
+                                        <div class="visibility-icon">🔒</div>
+                                        <div class="visibility-label">Private</div>
+                                        <div class="visibility-description">Only you can see this book in your profile</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         <div id="login-required-message" class="login-required" style="display: none;">
                             <p>⚠️ Please <a href="/login.html" class="auth-link">login</a> or <a href="/register.html" class="auth-link">register</a> to create books.</p>
                         </div>
@@ -239,10 +262,22 @@
             <div class="tab-content" id="history-tab">
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="card-title">Book History</h2>
+                        <h2 class="card-title">My Books</h2>
                         <button class="btn btn-secondary" id="refresh-btn">🔄 Refresh</button>
                     </div>
                     <div id="history-content" class="history-content">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="discover-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Discover Public Books</h2>
+                        <button class="btn btn-secondary" id="refresh-discover-btn">🔄 Refresh</button>
+                    </div>
+                    <div id="discover-content" class="history-content">
                         <div class="loading">Loading...</div>
                     </div>
                 </div>

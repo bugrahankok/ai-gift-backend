@@ -54,6 +54,8 @@ public class UserService {
                 .content(entity.getContent())
                 .pdfPath(entity.getPdfPath())
                 .pdfReady(entity.getPdfReady())
+                .isPublic(entity.getIsPublic())
+                .authorName(entity.getUser() != null ? entity.getUser().getName() : null)
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

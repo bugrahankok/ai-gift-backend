@@ -46,6 +46,9 @@ public class BookEntity {
     @Column(nullable = false)
     private Boolean pdfReady;
     
+    @Column(nullable = false)
+    private Boolean isPublic;
+    
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
@@ -58,6 +61,9 @@ public class BookEntity {
         createdAt = LocalDateTime.now();
         if (pdfReady == null) {
             pdfReady = false;
+        }
+        if (isPublic == null) {
+            isPublic = false;
         }
     }
 }

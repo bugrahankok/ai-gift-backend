@@ -51,19 +51,50 @@ public class BookController {
         return ResponseEntity.ok(books);
     }
     
+    @GetMapping("/discover")
+    @Operation(summary = "Discover public books", description = "Retrieves all public books that can be viewed by anyone")
+    public ResponseEntity<List<BookResponse>> discoverPublicBooks() {
+        List<BookResponse> books = bookService.getPublicBooks();
+        return ResponseEntity.ok(books);
+    }
+    
     @GetMapping("/{id}")
     @Operation(summary = "Get book by ID", description = "Retrieves a specific book by its ID")
     public ResponseEntity<BookResponse> getBookById(@PathVariable Long id, Authentication authentication) {
-        UserEntity user = (UserEntity) authentication.getPrincipal();
-        BookResponse book = bookService.getBookById(id, user.getId());
+        BookResponse book = bookService.getBookById(id);
+        
+        // Check if book is public or belongs to authenticated user
+        if (authentication != null) {
+            UserEntity user = (UserEntity) authentication.getPrincipal();
+            if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        } else {
+            // If not authenticated, only allow public books
+            if (!book.getIsPublic()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+        
         return ResponseEntity.ok(book);
     }
     
     @GetMapping("/{id}/pdf")
     @Operation(summary = "Download PDF", description = "Downloads the PDF file for a book")
     public ResponseEntity<Resource> downloadPdf(@PathVariable Long id, Authentication authentication) {
-        UserEntity user = (UserEntity) authentication.getPrincipal();
-        BookResponse book = bookService.getBookById(id, user.getId());
+        BookResponse book = bookService.getBookById(id);
+        
+        // Check access: public book or owner
+        if (authentication != null) {
+            UserEntity user = (UserEntity) authentication.getPrincipal();
+            if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        } else {
+            if (!book.getIsPublic()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
         
         if (book.getPdfPath() == null || !book.getPdfReady()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -86,11 +117,41 @@ public class BookController {
                 .body(resource);
     }
     
+    @PatchMapping("/{id}/visibility")
+    @Operation(summary = "Update book visibility", description = "Updates the public/private visibility of a book")
+    public ResponseEntity<BookResponse> updateBookVisibility(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> request,
+            Authentication authentication) {
+        try {
+            UserEntity user = (UserEntity) authentication.getPrincipal();
+            Boolean isPublic = request.get("isPublic");
+            if (isPublic == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            BookResponse book = bookService.updateBookVisibility(id, user.getId(), isPublic);
+            return ResponseEntity.ok(book);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+    
     @GetMapping("/{id}/status")
     @Operation(summary = "Check PDF status", description = "Checks if PDF is ready for download")
     public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id, Authentication authentication) {
-        UserEntity user = (UserEntity) authentication.getPrincipal();
-        BookResponse book = bookService.getBookById(id, user.getId());
+        BookResponse book = bookService.getBookById(id);
+        
+        // Check access: public book or owner
+        if (authentication != null) {
+            UserEntity user = (UserEntity) authentication.getPrincipal();
+            if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        } else {
+            if (!book.getIsPublic()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
         return ResponseEntity.ok(Map.of(
             "pdfReady", book.getPdfReady(),
             "pdfPath", book.getPdfPath() != null ? book.getPdfPath() : ""

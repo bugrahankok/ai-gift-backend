@@ -10,5 +10,6 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<BookEntity, Long> {
     List<BookEntity> findAllByOrderByCreatedAtDesc();
     List<BookEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<BookEntity> findByIsPublicTrueOrderByCreatedAtDesc();
 }
 

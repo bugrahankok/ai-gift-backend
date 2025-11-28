@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     initializeForm();
     loadHistory();
+    loadDiscover();
     initializeModals();
     setupLogout();
     updateHeader();
@@ -29,6 +30,8 @@ function initializeTabs() {
 
             if (targetTab === 'history') {
                 loadHistory();
+            } else if (targetTab === 'discover') {
+                loadDiscover();
             }
         });
     });
@@ -54,13 +57,15 @@ function initializeForm() {
         }
         
         const formData = new FormData(form);
+        const visibility = formData.get('visibility');
         const bookData = {
             name: formData.get('name'),
             age: parseInt(formData.get('age')),
             theme: formData.get('theme'),
             tone: formData.get('tone'),
             giver: formData.get('giver'),
-            appearance: formData.get('appearance') || ''
+            appearance: formData.get('appearance') || '',
+            isPublic: visibility === 'public'
         };
         
         const bookType = formData.get('book-type');
@@ -114,6 +119,10 @@ function initializeForm() {
             
             setTimeout(() => {
                 loadHistory();
+                // Refresh discover page if book is public
+                if (result.isPublic) {
+                    loadDiscover();
+                }
             }, 1000);
         } catch (error) {
             console.error('Error details:', error);
@@ -147,6 +156,11 @@ function displayResult(book) {
         minute: '2-digit'
     }) : 'Unknown';
     
+    const visibilityBadge = book.isPublic ? '🌍 Public' : '🔒 Private';
+    const authorInfo = book.authorName ? `<span style="display: inline-flex; gap: 6px;">
+                <strong>Author:</strong> ${book.authorName}
+            </span>` : '';
+    
     resultMeta.innerHTML = `
         <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 0.95rem; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border-color);">
             <span style="display: inline-flex; gap: 6px;">
@@ -155,6 +169,10 @@ function displayResult(book) {
             <span style="display: inline-flex; gap: 6px;">
                 <strong>Type:</strong> E-Book
             </span>
+            <span style="display: inline-flex; gap: 6px;">
+                <strong>Visibility:</strong> ${visibilityBadge}
+            </span>
+            ${authorInfo}
             <span style="display: inline-flex; gap: 6px; color: var(--text-secondary);">
                 <strong>Created:</strong> ${createdAt}
             </span>
@@ -197,15 +215,8 @@ function showPdfControls(book) {
     const viewBtn = document.getElementById('view-pdf-btn');
     
     downloadBtn.onclick = () => {
-        const token = localStorage.getItem('authToken');
         const url = `${API_BASE_URL}/${book.bookId}/pdf`;
-        const link = document.createElement('a');
-        link.href = url;
-        link.target = '_blank';
-        link.download = `book-${book.bookId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        window.open(url, '_blank');
     };
     
     viewBtn.onclick = () => {
@@ -313,8 +324,9 @@ function startPdfStatusCheck(bookId) {
     
     pdfCheckInterval = setInterval(async () => {
         try {
+            const headers = isAuthenticated() ? getAuthHeaders() : { 'Content-Type': 'application/json' };
             const response = await fetch(`${API_BASE_URL}/${bookId}/status`, {
-                headers: getAuthHeaders()
+                headers: headers
             });
             if (response.ok) {
                 const status = await response.json();
@@ -323,7 +335,7 @@ function startPdfStatusCheck(bookId) {
                     pdfCheckInterval = null;
                     
                     const bookResponse = await fetch(`${API_BASE_URL}/${bookId}`, {
-                        headers: getAuthHeaders()
+                        headers: headers
                     });
                     const book = await bookResponse.json();
                     showPdfControls(book);
@@ -398,7 +410,15 @@ function displayHistory(books) {
                     <div class="gift-item-title">
                         📚 ${book.name} - ${book.theme}
                     </div>
-                    <span class="gift-item-type">E-Book</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="gift-item-type">${book.isPublic ? '🌍 Public' : '🔒 Private'}</span>
+                        <label class="visibility-toggle">
+                            <input type="checkbox" ${book.isPublic ? 'checked' : ''} 
+                                   onchange="toggleBookVisibility(${book.bookId}, this.checked)"
+                                   class="toggle-switch">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
                 <div class="gift-item-meta">
                     <span>🆔 ID: #${book.bookId}</span>
@@ -441,10 +461,139 @@ function toggleContent(id, fullContent) {
     }
 }
 
+async function loadDiscover() {
+    const discoverContent = document.getElementById('discover-content');
+    if (!discoverContent) return;
+    
+    discoverContent.innerHTML = '<div class="loading">Loading...</div>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/discover`);
+        if (!response.ok) {
+            throw new Error('Failed to load public books');
+        }
+
+        const books = await response.json();
+        displayDiscoverBooks(books);
+    } catch (error) {
+        console.error('Error:', error);
+        discoverContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <div class="empty-state-text">An error occurred while loading public books</div>
+            </div>
+        `;
+    }
+}
+
+function displayDiscoverBooks(books) {
+    const discoverContent = document.getElementById('discover-content');
+    if (!discoverContent) return;
+
+    if (books.length === 0) {
+        discoverContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-text">No public books available yet</div>
+                <p style="margin-top: 10px; color: var(--text-secondary);">Be the first to share a public book!</p>
+            </div>
+        `;
+        return;
+    }
+
+    discoverContent.innerHTML = books.map(book => {
+        const contentPreview = book.content.substring(0, 200);
+        const hasMore = book.content.length > 200;
+        
+        return `
+            <div class="gift-item" data-id="${book.bookId}">
+                <div class="gift-item-header">
+                    <div class="gift-item-title">
+                        📚 ${book.name} - ${book.theme}
+                    </div>
+                    <span class="gift-item-type">🌍 Public</span>
+                </div>
+                <div class="gift-item-meta">
+                    <span>🆔 ID: #${book.bookId}</span>
+                    <span>👤 For: ${book.name} (Age ${book.age})</span>
+                    <span>✍️ By: ${book.authorName || 'Unknown'}</span>
+                    <span>📅 ${new Date(book.createdAt).toLocaleDateString('en-US')}</span>
+                </div>
+                <div class="gift-item-content" id="content-${book.bookId}">
+                    ${escapeHtml(contentPreview)}${hasMore ? '...' : ''}
+                </div>
+                ${hasMore ? `<button class="btn btn-secondary" style="margin-top: 10px; width: 100%;" onclick="toggleContent(${book.bookId}, ${JSON.stringify(book.content)})">Show More</button>` : ''}
+                ${book.pdfReady ? `<button onclick="viewPublicBook(${book.bookId})" class="btn btn-primary" style="margin-top: 10px; width: 100%;">📖 Read Book</button>` : '<p style="margin-top: 10px; color: var(--text-secondary);">⏳ PDF is being generated...</p>'}
+            </div>
+        `;
+    }).join('');
+
+    document.querySelectorAll('#discover-content .gift-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                const id = item.getAttribute('data-id');
+                viewPublicBook(id);
+            }
+        });
+    });
+}
+
+async function viewPublicBook(id) {
+    try {
+        const headers = isAuthenticated() ? getAuthHeaders() : { 'Content-Type': 'application/json' };
+        const response = await fetch(`${API_BASE_URL}/${id}`, {
+            headers: headers
+        });
+        
+        if (!response.ok) {
+            if (response.status === 403) {
+                showToast('This book is private', 'error');
+                return;
+            }
+            throw new Error('Failed to load book details');
+        }
+
+        const book = await response.json();
+        
+        if (!book.isPublic) {
+            showToast('This book is private', 'error');
+            return;
+        }
+        
+        currentBookId = book.bookId;
+        displayResult(book);
+        
+        if (book.pdfReady) {
+            showPdfControls(book);
+        } else {
+            showPdfLoading();
+            startPdfStatusCheck(book.bookId);
+        }
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.getAttribute('data-tab') === 'create') {
+                btn.click();
+            }
+        });
+        
+        showToast('Book displayed', 'success');
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to load book details', 'error');
+    }
+}
+
 async function viewBookDetails(id) {
     try {
-        const response = await fetch(`${API_BASE_URL}/${id}`);
+        const headers = isAuthenticated() ? getAuthHeaders() : { 'Content-Type': 'application/json' };
+        const response = await fetch(`${API_BASE_URL}/${id}`, {
+            headers: headers
+        });
         if (!response.ok) {
+            if (response.status === 403) {
+                showToast('Access denied', 'error');
+                return;
+            }
             throw new Error('Failed to load book details');
         }
 
@@ -505,6 +654,11 @@ function setupOptionCards(containerId, hiddenInputId) {
 document.getElementById('refresh-btn')?.addEventListener('click', () => {
     loadHistory();
     showToast('History refreshed', 'success');
+});
+
+document.getElementById('refresh-discover-btn')?.addEventListener('click', () => {
+    loadDiscover();
+    showToast('Discover page refreshed', 'success');
 });
 
 function checkConsent() {
@@ -733,4 +887,40 @@ function downloadBookPdf(bookId) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+async function toggleBookVisibility(bookId, isPublic) {
+    if (!isAuthenticated()) {
+        showToast('Please login to change book visibility', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/${bookId}/visibility`, {
+            method: 'PATCH',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ isPublic: isPublic })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update book visibility');
+        }
+
+        const updatedBook = await response.json();
+        showToast(`Book is now ${isPublic ? 'public' : 'private'}`, 'success');
+        
+        // Refresh history and discover pages
+        loadHistory();
+        if (isPublic) {
+            loadDiscover();
+        } else {
+            // If book became private, refresh discover to remove it
+            loadDiscover();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed to update book visibility', 'error');
+        // Reload history to revert the toggle
+        loadHistory();
+    }
 }
