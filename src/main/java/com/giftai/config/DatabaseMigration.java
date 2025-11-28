@@ -125,6 +125,40 @@ public class DatabaseMigration {
                 log.info("✅ 'is_public' column already exists in books table");
             }
             
+            // Check if view_count column exists in books table
+            String checkViewCountColumnSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name = 'books' AND column_name = 'view_count'
+                """;
+            
+            Integer viewCountColumnExists = jdbcTemplate.queryForObject(checkViewCountColumnSql, Integer.class);
+            
+            if (viewCountColumnExists == null || viewCountColumnExists == 0) {
+                log.info("Adding missing 'view_count' column to books table...");
+                jdbcTemplate.execute("ALTER TABLE books ADD COLUMN IF NOT EXISTS view_count BIGINT DEFAULT 0 NOT NULL");
+                log.info("✅ Successfully added 'view_count' column to books table");
+            } else {
+                log.info("✅ 'view_count' column already exists in books table");
+            }
+            
+            // Check if download_count column exists in books table
+            String checkDownloadCountColumnSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name = 'books' AND column_name = 'download_count'
+                """;
+            
+            Integer downloadCountColumnExists = jdbcTemplate.queryForObject(checkDownloadCountColumnSql, Integer.class);
+            
+            if (downloadCountColumnExists == null || downloadCountColumnExists == 0) {
+                log.info("Adding missing 'download_count' column to books table...");
+                jdbcTemplate.execute("ALTER TABLE books ADD COLUMN IF NOT EXISTS download_count BIGINT DEFAULT 0 NOT NULL");
+                log.info("✅ Successfully added 'download_count' column to books table");
+            } else {
+                log.info("✅ 'download_count' column already exists in books table");
+            }
+            
             log.info("Database migration completed successfully");
             
         } catch (Exception e) {

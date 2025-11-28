@@ -56,6 +56,8 @@ public class UserService {
                 .pdfReady(entity.getPdfReady())
                 .isPublic(entity.getIsPublic())
                 .authorName(entity.getUser() != null ? entity.getUser().getName() : null)
+                .viewCount(entity.getViewCount() != null ? entity.getViewCount() : 0L)
+                .downloadCount(entity.getDownloadCount() != null ? entity.getDownloadCount() : 0L)
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

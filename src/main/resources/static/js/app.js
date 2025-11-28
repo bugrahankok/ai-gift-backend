@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeModals();
     setupLogout();
     updateHeader();
+    
+    // Check if URL has book parameter for direct sharing
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get('book');
+    if (bookId) {
+        // Load the book when page loads
+        setTimeout(() => {
+            viewBookDetails(bookId);
+        }, 500);
+    }
 });
 
 function initializeTabs() {
@@ -178,6 +188,21 @@ function displayResult(book) {
             </span>
         </div>
     `;
+    
+    // Update share bar with stats
+    if (book.viewCount !== undefined) {
+        document.getElementById('view-count').textContent = book.viewCount || 0;
+    }
+    if (book.downloadCount !== undefined) {
+        document.getElementById('download-count').textContent = book.downloadCount || 0;
+    }
+    
+    // Store current book ID for sharing
+    window.currentBookId = book.bookId;
+    window.currentBookName = book.name;
+    
+    // Show share bar
+    document.getElementById('share-bar').style.display = 'block';
     
     resultContent.innerHTML = `
         <div style="word-wrap: break-word; line-height: 1.8; white-space: pre-wrap;">
@@ -563,6 +588,10 @@ async function viewPublicBook(id) {
         currentBookId = book.bookId;
         displayResult(book);
         
+        // Update share bar with stats (displayResult already does this, but ensure it's visible)
+        const shareBar = document.getElementById('share-bar');
+        if (shareBar) shareBar.style.display = 'block';
+        
         if (book.pdfReady) {
             showPdfControls(book);
         } else {
@@ -600,6 +629,22 @@ async function viewBookDetails(id) {
         const book = await response.json();
         currentBookId = book.bookId;
         displayResult(book);
+        
+        // Update share bar with stats
+        if (book.viewCount !== undefined) {
+            const viewCountEl = document.getElementById('view-count');
+            if (viewCountEl) viewCountEl.textContent = book.viewCount || 0;
+        }
+        if (book.downloadCount !== undefined) {
+            const downloadCountEl = document.getElementById('download-count');
+            if (downloadCountEl) downloadCountEl.textContent = book.downloadCount || 0;
+        }
+        
+        // Store for sharing
+        window.currentBookId = book.bookId;
+        window.currentBookName = book.name;
+        const shareBar = document.getElementById('share-bar');
+        if (shareBar) shareBar.style.display = 'block';
         
         if (book.pdfReady) {
             showPdfControls(book);
@@ -880,13 +925,76 @@ function setupLogout() {
 
 function downloadBookPdf(bookId) {
     const url = `${API_BASE_URL}/${bookId}/pdf`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.download = `book-${bookId}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(url, '_blank');
+    
+    // Update download count in UI
+    const downloadCountEl = document.getElementById('download-count');
+    if (downloadCountEl) {
+        const current = parseInt(downloadCountEl.textContent) || 0;
+        downloadCountEl.textContent = current + 1;
+    }
+}
+
+// Share functions
+function getBookShareUrl() {
+    const bookId = window.currentBookId;
+    if (!bookId) return window.location.origin;
+    return `${window.location.origin}/?book=${bookId}`;
+}
+
+function getBookShareText() {
+    const bookName = window.currentBookName || 'this amazing personalized book';
+    return `Check out "${bookName}" - a personalized e-book created with BookifyAI! 📚✨`;
+}
+
+function shareToFacebook() {
+    const url = encodeURIComponent(getBookShareUrl());
+    const text = encodeURIComponent(getBookShareText());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`, '_blank', 'width=600,height=400');
+}
+
+function shareToTwitter() {
+    const url = encodeURIComponent(getBookShareUrl());
+    const text = encodeURIComponent(getBookShareText());
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+}
+
+function shareToLinkedIn() {
+    const url = encodeURIComponent(getBookShareUrl());
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+}
+
+function shareToWhatsApp() {
+    const url = encodeURIComponent(getBookShareUrl());
+    const text = encodeURIComponent(getBookShareText());
+    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+}
+
+function shareViaEmail() {
+    const url = getBookShareUrl();
+    const text = getBookShareText();
+    const subject = encodeURIComponent('Check out this personalized e-book!');
+    const body = encodeURIComponent(`${text}\n\nRead it here: ${url}`);
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function copyBookLink() {
+    const url = getBookShareUrl();
+    navigator.clipboard.writeText(url).then(() => {
+        const copyBtn = document.querySelector('.copy-link');
+        const originalText = copyBtn.querySelector('.copy-text').textContent;
+        copyBtn.querySelector('.copy-text').textContent = 'Copied!';
+        copyBtn.style.background = 'linear-gradient(135deg, #4CAF50 0%, #45a049 100%)';
+        showToast('Link copied to clipboard!', 'success');
+        
+        setTimeout(() => {
+            copyBtn.querySelector('.copy-text').textContent = originalText;
+            copyBtn.style.background = '';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        showToast('Failed to copy link', 'error');
+    });
 }
 
 async function toggleBookVisibility(bookId, isPublic) {

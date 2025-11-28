@@ -1,19 +1,33 @@
-# GiftAI Backend
+# BookifyAI - Personalized E-Book Creator
 
-AI-powered personalized e-book generation system. Creates custom e-books using OpenAI ChatGPT API with PDF generation, viewing, and download capabilities.
+AI-powered personalized e-book generation system. Creates custom e-books using OpenAI ChatGPT API with PDF generation, viewing, and download capabilities. Users can share their books publicly or keep them private, and discover books created by others.
 
 ## 🚀 Features
 
+### Core Features
 - **Personalized E-Book Generation**: Create custom books based on recipient information (name, age, theme, tone, giver, appearance)
 - **OpenAI Integration**: Real AI content generation using ChatGPT API
-- **PDF Generation**: Automatic PDF creation with professional formatting
+- **PDF Generation**: Automatic PDF creation with professional formatting (30+ pages)
 - **PDF Viewer**: Page-by-page PDF viewing directly in the browser
 - **PDF Download**: Download generated PDFs
 - **RESTful API**: Full CRUD operations for books
-- **Web Interface**: Modern, responsive UI for creating and viewing books
-- **PostgreSQL Database**: Persistent storage for all generated books
+- **Web Interface**: Modern, responsive UI with beautiful pastel color scheme
+- **Interactive Selection**: Visual option cards for theme, book type, and tone selection
+
+### User Features
+- **User Authentication**: Secure user registration and login system with JWT tokens
+- **User Profiles**: View your profile and all your created books
+- **Public/Private Books**: Choose whether your books are public (discoverable by everyone) or private (only visible to you)
+- **Discover Page**: Browse and read public books created by other users
+- **Visibility Toggle**: Easily switch between public and private for any of your books using a toggle switch
+- **Book History**: View all your previously generated books (both public and private)
+
+### Additional Features
+- **PostgreSQL Database**: Persistent storage for all generated books and users
 - **Swagger Documentation**: Interactive API documentation
 - **Environment Configuration**: Secure .env file support for sensitive data
+- **Privacy & Terms**: Consent modal and policy pages
+- **Automatic Database Migration**: Schema updates handled automatically on startup
 
 ## 🛠️ Technology Stack
 
@@ -22,6 +36,7 @@ AI-powered personalized e-book generation system. Creates custom e-books using O
 - **Maven**
 - **Spring Web**
 - **Spring Data JPA**
+- **Spring Security** (JWT authentication)
 - **PostgreSQL** (database)
 - **Swagger/OpenAPI** (Springdoc)
 - **Dotenv** (.env file support)
@@ -29,6 +44,7 @@ AI-powered personalized e-book generation system. Creates custom e-books using O
 - **OpenAI Java Client** (ChatGPT API integration)
 - **iText7** (PDF generation)
 - **PDF.js** (PDF viewing in browser)
+- **BCrypt** (password encryption)
 
 ## 📁 Project Structure
 
@@ -36,23 +52,35 @@ AI-powered personalized e-book generation system. Creates custom e-books using O
 src/main/java/com/giftai/
 ├── controller/          # REST API controllers
 │   ├── BookController.java
+│   ├── AuthController.java
+│   ├── UserController.java
 │   └── GlobalExceptionHandler.java
 ├── service/             # Business logic
 │   ├── BookService.java
-│   └── PdfGenerationService.java
+│   ├── PdfGenerationService.java
+│   ├── AuthenticationService.java
+│   └── UserService.java
 ├── provider/            # AI provider implementations
 │   └── BookProvider.java
 ├── model/               # DTOs
 │   ├── BookRequest.java
-│   └── BookResponse.java
+│   ├── BookResponse.java
+│   ├── RegisterRequest.java
+│   ├── LoginRequest.java
+│   └── AuthResponse.java
 ├── entity/              # JPA entities
-│   └── BookEntity.java
+│   ├── BookEntity.java
+│   └── UserEntity.java
 ├── repository/          # Data access layer
-│   └── BookRepository.java
+│   ├── BookRepository.java
+│   └── UserRepository.java
 ├── config/              # Configuration classes
 │   ├── WebConfig.java
 │   ├── OpenApiConfig.java
-│   └── CorsConfig.java
+│   ├── SecurityConfig.java
+│   ├── JwtTokenProvider.java
+│   ├── JwtAuthenticationFilter.java
+│   └── DatabaseMigration.java
 └── console/             # Console interface
     └── ConsoleInterface.java
 ```
@@ -88,18 +116,22 @@ cp .env.example .env
 4. **Edit `.env` file:**
 ```env
 # Database Configuration
-DATABASE_URL=jdbc:postgresql://localhost:5432/giftai
+DATABASE_URL=jdbc:postgresql://localhost:5432/bookifyai
 DATABASE_USERNAME=postgres
 DATABASE_PASSWORD=your_database_password_here
 
 # OpenAI API Configuration (Required for book generation)
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-3.5-turbo
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key_here_minimum_256_bits
+JWT_EXPIRATION=86400000
 ```
 
 5. **Create PostgreSQL database:**
 ```sql
-CREATE DATABASE giftai;
+CREATE DATABASE bookifyai;
 ```
 
 6. **Run the application:**
@@ -111,28 +143,99 @@ The application will start at `http://localhost:8080`
 
 ## 🎮 Usage
 
-### Web Interface
+### Getting Started
 
 1. Open `http://localhost:8080` in your browser
-2. Fill in the book creation form:
+2. Accept the Privacy Policy and Terms of Service when prompted
+3. Register a new account or login if you already have one
+
+### Creating a Book
+
+1. **Fill in the book creation form:**
    - **Recipient's Name**: The person the book is for
    - **Age**: Recipient's age
-   - **Theme**: Book theme (e.g., Adventure, Fantasy, Friendship)
-   - **Tone**: Writing tone (e.g., Warm, Exciting, Magical)
+   - **Theme**: Book theme (select from visual cards: Adventure, Fantasy, Space, Pirates, Dinosaurs, etc.)
+   - **Book Type**: Story type (select from visual cards: Adventure Story, Fairy Tale, Mystery Story, etc.)
+   - **Tone**: Writing tone (select from visual cards: Warm, Exciting, Magical, Mysterious, etc.)
    - **Gift Giver**: Who is giving this book
    - **Appearance** (Optional): Physical description to include in the story
-3. Click "Create Book"
-4. The book content will be displayed immediately
-5. PDF generation starts in the background
-6. Once PDF is ready, you can:
+   - **Visibility**: Choose **Public** (everyone can discover) or **Private** (only you can see)
+
+2. Click "Create Book"
+3. The book content will be displayed immediately
+4. PDF generation starts in the background
+5. Once PDF is ready, you can:
    - View it page-by-page using the PDF viewer
    - Download it as a PDF file
 
-### REST API Endpoints
+### Managing Your Books
 
-#### Create Book
+- **My Books Tab**: View all your created books (both public and private)
+  - Each book shows its visibility status (🌍 Public or 🔒 Private)
+  - Use the toggle switch to change visibility anytime
+  - Click on any book to view full details
+
+- **Discover Tab**: Browse public books created by other users
+  - View all publicly shared books
+  - Read books without logging in
+  - See author names for public books
+
+### Book Visibility
+
+- **Public Books**: 
+  - Visible to everyone in the Discover page
+  - Can be read by anyone (even without login)
+  - Show author name
+  - Great for sharing your creations with the community
+  
+- **Private Books**:
+  - Only visible to you in your "My Books" tab
+  - Cannot be accessed by others
+  - Perfect for personal gifts
+
+## 🔌 REST API Endpoints
+
+### Authentication Endpoints
+
+#### Register
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe"
+}
+```
+
+#### Login
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "userId": 1,
+  "email": "user@example.com",
+  "name": "John Doe"
+}
+```
+
+### Book Endpoints
+
+#### Create Book (requires authentication)
 ```http
 POST /api/book/generate
+Authorization: Bearer {token}
 Content-Type: application/json
 
 {
@@ -141,7 +244,8 @@ Content-Type: application/json
   "theme": "Adventure",
   "tone": "Warm",
   "giver": "Mom",
-  "appearance": "Brown hair, blue eyes, tall"
+  "appearance": "Brown hair, blue eyes, tall",
+  "isPublic": true
 }
 ```
 
@@ -158,28 +262,61 @@ Content-Type: application/json
   "content": "A Special Gift for Alice\n\nFrom: Mom\n\n...",
   "pdfPath": null,
   "pdfReady": false,
+  "isPublic": true,
+  "authorName": "John Doe",
   "createdAt": "2024-01-01T12:00:00"
 }
 ```
 
-#### Get Book History
+#### Get User's Books (requires authentication)
 ```http
 GET /api/book/history
+Authorization: Bearer {token}
+```
+
+#### Discover Public Books (public, no authentication required)
+```http
+GET /api/book/discover
 ```
 
 #### Get Book by ID
 ```http
 GET /api/book/{id}
 ```
+- Public books: accessible to everyone
+- Private books: only accessible to the owner (requires authentication)
+
+#### Update Book Visibility (requires authentication, owner only)
+```http
+PATCH /api/book/{id}/visibility
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "isPublic": true
+}
+```
 
 #### Download PDF
 ```http
 GET /api/book/{id}/pdf
 ```
+- Public books: accessible to everyone
+- Private books: only accessible to the owner (requires authentication)
 
 #### Check PDF Status
 ```http
 GET /api/book/{id}/status
+```
+- Public books: accessible to everyone
+- Private books: only accessible to the owner (requires authentication)
+
+### User Endpoints
+
+#### Get User Profile (requires authentication)
+```http
+GET /api/user/profile
+Authorization: Bearer {token}
 ```
 
 ## 📚 Swagger UI
@@ -196,77 +333,77 @@ Access interactive API documentation:
 - **Features**: 
   - OpenAI ChatGPT API integration
   - Generates 6000-8000 word stories
-  - 8-10 chapters per book
+  - 8-10 chapters per book (~30 pages in PDF)
   - Rich descriptions and character development
   - Appearance integration when provided
   - Professional book formatting
 
 ## 💾 Database
 
-The application uses PostgreSQL for persistent storage. All generated books are saved with:
-- Book content
-- PDF path (when ready)
-- PDF ready status
-- Creation timestamp
-- All book metadata (name, age, theme, tone, giver, appearance)
+The application uses PostgreSQL for persistent storage. All generated books and users are saved with:
+
+### Users Table
+- id, email, password (hashed), name, created_at
+
+### Books Table
+- id, name, age, theme, tone, giver, appearance, content, pdf_path, pdf_ready, **is_public**, created_at, user_id
+
+### Automatic Database Migration
+
+The application includes automatic database migration that runs on startup:
+- Adds missing columns (`name` in users, `user_id` and `is_public` in books)
+- Handles schema updates automatically
+- No manual migration scripts required
 
 ## 🔒 Security
 
-**⚠️ IMPORTANT SECURITY NOTE:** All sensitive information (API keys, passwords) must be stored in the `.env` file. 
+- **JWT-based Authentication**: Secure token-based authentication system
+- **Password Encryption**: BCrypt password hashing
+- **Protected Endpoints**: Most endpoints require authentication
+- **Public Access**: Discover page and public books are accessible without login
+- **Owner Verification**: Only book owners can modify their books' visibility
+- **Session Management**: Stateless JWT tokens for scalability
+
+**⚠️ IMPORTANT SECURITY NOTE:** All sensitive information (API keys, passwords, JWT secrets) must be stored in the `.env` file. 
 The `.env` file is in `.gitignore` and will NOT be uploaded to GitHub.
 
-Create a `.env` file in the project root directory and add the following variables:
+## 🎯 Use Cases
 
-```env
-# Database Configuration
-DATABASE_URL=jdbc:postgresql://localhost:5432/giftai
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=your_database_password_here
+### Use Case 1: Create and Share a Public Book
+1. Register/Login to your account
+2. Create a book and select "Public" visibility
+3. Your book appears in the Discover page
+4. Anyone can read your book, even without logging in
+5. Your name appears as the author
 
-# OpenAI API Configuration (Required for book generation)
-OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-3.5-turbo
+### Use Case 2: Create a Private Personal Gift
+1. Register/Login to your account
+2. Create a book and select "Private" visibility
+3. Only you can see this book in your "My Books" tab
+4. Perfect for personal gifts
 
-# JWT Configuration (for future use)
-JWT_SECRET=your_jwt_secret_key_here_minimum_256_bits
-JWT_EXPIRATION=86400000
-```
+### Use Case 3: Change Book Visibility
+1. Go to "My Books" tab
+2. Find the book you want to change
+3. Toggle the switch to make it public or private
+4. Changes are reflected immediately in the Discover page
 
-**Note:** A `.env.example` file is included in the project. You can copy it to `.env` and fill in your values.
+### Use Case 4: Discover and Read Public Books
+1. Go to "Discover" tab (no login required)
+2. Browse all public books
+3. Click on any book to read it
+4. View PDF or download if available
 
 ## 📝 Project Details
 
 - **Controllers**: Handle HTTP requests and responses
-- **Services**: Business logic and PDF generation
+- **Services**: Business logic, PDF generation, authentication
 - **Providers**: AI model implementations
 - **Models**: Request and response DTOs
 - **Entities**: JPA database entities
 - **Repositories**: Data access interfaces
-- **Config**: Web, OpenAPI, and CORS configurations
-
-## 🎯 Features and Use Cases
-
-### Use Case 1: Create Personalized E-Book via Web Interface
-1. Start the application
-2. Open `http://localhost:8080` in your browser
-3. Fill in the book creation form with recipient details
-4. Click "Create Book"
-5. View the generated book content immediately
-6. Wait for PDF generation (happens in background)
-7. View PDF page-by-page or download it
-
-### Use Case 2: Create Book via REST API
-1. Use Swagger UI or Postman
-2. Send a POST request to `/api/book/generate`
-3. Receive JSON response with book content
-4. Check PDF status using `/api/book/{id}/status`
-5. Download PDF when ready using `/api/book/{id}/pdf`
-
-### Use Case 3: View Book History
-1. Use the "History" tab in the web interface
-2. Or call `GET /api/book/history` endpoint
-3. View all previously created books
-4. Click on any book to view details
+- **Config**: Web, OpenAPI, Security, and CORS configurations
+- **Migration**: Automatic database schema updates
 
 ## 📄 License
 
@@ -286,4 +423,4 @@ Feel free to open an issue for questions or suggestions.
 
 ---
 
-**Note**: Don't forget to add your OpenAI API key to the `.env` file. Without an API key, the system will return dummy responses.
+**Note**: Don't forget to add your OpenAI API key to the `.env` file. Without an API key, the system will not be able to generate books.

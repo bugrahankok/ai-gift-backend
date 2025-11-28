@@ -107,6 +107,26 @@ public class BookService {
         return toResponse(entity);
     }
     
+    @Transactional
+    public void incrementViewCount(Long id) {
+        log.info("Incrementing view count for book: {}", id);
+        BookEntity entity = bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+        
+        entity.setViewCount(entity.getViewCount() + 1);
+        bookRepository.save(entity);
+    }
+    
+    @Transactional
+    public void incrementDownloadCount(Long id) {
+        log.info("Incrementing download count for book: {}", id);
+        BookEntity entity = bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+        
+        entity.setDownloadCount(entity.getDownloadCount() + 1);
+        bookRepository.save(entity);
+    }
+    
     private BookResponse toResponse(BookEntity entity) {
         return BookResponse.builder()
                 .bookId(entity.getId())
@@ -121,6 +141,8 @@ public class BookService {
                 .pdfReady(entity.getPdfReady())
                 .isPublic(entity.getIsPublic())
                 .authorName(entity.getUser() != null ? entity.getUser().getName() : null)
+                .viewCount(entity.getViewCount() != null ? entity.getViewCount() : 0L)
+                .downloadCount(entity.getDownloadCount() != null ? entity.getDownloadCount() : 0L)
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

@@ -76,6 +76,13 @@ public class BookController {
             }
         }
         
+        // Increment view count (async, don't wait for it)
+        try {
+            bookService.incrementViewCount(id);
+        } catch (Exception e) {
+            // Log but don't fail the request
+        }
+        
         return ResponseEntity.ok(book);
     }
     
@@ -99,6 +106,9 @@ public class BookController {
         if (book.getPdfPath() == null || !book.getPdfReady()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        
+        // Increment download count
+        bookService.incrementDownloadCount(id);
         
         File file = new File(book.getPdfPath());
         if (!file.exists()) {
@@ -133,6 +143,28 @@ public class BookController {
             return ResponseEntity.ok(book);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+    
+    @PostMapping("/{id}/view")
+    @Operation(summary = "Increment view count", description = "Increments the view count for a book")
+    public ResponseEntity<Void> incrementViewCount(@PathVariable Long id) {
+        try {
+            bookService.incrementViewCount(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @PostMapping("/{id}/download")
+    @Operation(summary = "Increment download count", description = "Increments the download count for a book")
+    public ResponseEntity<Void> incrementDownloadCount(@PathVariable Long id) {
+        try {
+            bookService.incrementDownloadCount(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
     }
     

@@ -49,6 +49,12 @@ public class BookEntity {
     @Column(nullable = false)
     private Boolean isPublic;
     
+    @Column(nullable = false)
+    private Long viewCount;
+    
+    @Column(nullable = false)
+    private Long downloadCount;
+    
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
@@ -64,6 +70,12 @@ public class BookEntity {
         }
         if (isPublic == null) {
             isPublic = false;
+        }
+        if (viewCount == null) {
+            viewCount = 0L;
+        }
+        if (downloadCount == null) {
+            downloadCount = 0L;
         }
     }
 }
