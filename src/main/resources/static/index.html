@@ -239,6 +239,153 @@
         </main>
     </div>
 
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <p class="copyright">&copy; 2025 BookifyAI. All rights reserved.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#" class="footer-link" id="privacy-link">Privacy Policy</a>
+                <span class="footer-separator">|</span>
+                <a href="#" class="footer-link" id="terms-link">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="modal-close" id="privacy-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Last Updated: January 2025</strong></p>
+                
+                <h3>1. Information We Collect</h3>
+                <p>BookifyAI collects the following information when you create a personalized e-book:</p>
+                <ul>
+                    <li>Recipient's name and age</li>
+                    <li>Book preferences (theme, type, tone)</li>
+                    <li>Gift giver information</li>
+                    <li>Optional appearance descriptions</li>
+                </ul>
+
+                <h3>2. How We Use Your Information</h3>
+                <p>We use the information you provide to:</p>
+                <ul>
+                    <li>Generate personalized e-books using AI technology</li>
+                    <li>Store your book history for your convenience</li>
+                    <li>Improve our service and user experience</li>
+                </ul>
+
+                <h3>3. Data Storage</h3>
+                <p>All book data is stored securely in our database. Generated books and associated information are retained to allow you to access your history and download PDFs.</p>
+
+                <h3>4. AI Processing</h3>
+                <p>Your information is processed by OpenAI's API to generate book content. We do not share your personal information with third parties except as necessary to provide our service.</p>
+
+                <h3>5. Your Rights</h3>
+                <p>You have the right to:</p>
+                <ul>
+                    <li>Access your stored book data</li>
+                    <li>Request deletion of your book history</li>
+                    <li>Opt out of data collection (though this may limit service functionality)</li>
+                </ul>
+
+                <h3>6. Security</h3>
+                <p>We implement appropriate security measures to protect your information. However, no method of transmission over the internet is 100% secure.</p>
+
+                <h3>7. Changes to This Policy</h3>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page.</p>
+
+                <h3>8. Contact Us</h3>
+                <p>If you have questions about this Privacy Policy, please contact us at support@bookifyai.com</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="terms-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Terms of Service</h2>
+                <button class="modal-close" id="terms-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Last Updated: January 2025</strong></p>
+                
+                <h3>1. Acceptance of Terms</h3>
+                <p>By accessing and using BookifyAI, you accept and agree to be bound by the terms and provision of this agreement.</p>
+
+                <h3>2. Use License</h3>
+                <p>Permission is granted to temporarily use BookifyAI for personal, non-commercial use. This is the grant of a license, not a transfer of title, and under this license you may not:</p>
+                <ul>
+                    <li>Modify or copy the materials</li>
+                    <li>Use the materials for any commercial purpose</li>
+                    <li>Attempt to reverse engineer any software contained in BookifyAI</li>
+                    <li>Remove any copyright or other proprietary notations from the materials</li>
+                </ul>
+
+                <h3>3. Service Description</h3>
+                <p>BookifyAI provides an AI-powered platform for creating personalized e-books. We use OpenAI's technology to generate book content based on user-provided information.</p>
+
+                <h3>4. User Responsibilities</h3>
+                <p>You are responsible for:</p>
+                <ul>
+                    <li>Providing accurate and appropriate information</li>
+                    <li>Ensuring you have the right to use any names or information you provide</li>
+                    <li>Using the service in compliance with all applicable laws</li>
+                    <li>Not using the service for any illegal or unauthorized purpose</li>
+                </ul>
+
+                <h3>5. Content Ownership</h3>
+                <p>Generated books are created for your personal use. You own the content generated for you, but you may not claim ownership of the underlying AI technology or algorithms.</p>
+
+                <h3>6. AI-Generated Content</h3>
+                <p>Content generated by BookifyAI is created using artificial intelligence. While we strive for quality, we do not guarantee accuracy, appropriateness, or suitability of generated content for any specific purpose.</p>
+
+                <h3>7. Limitation of Liability</h3>
+                <p>BookifyAI shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service.</p>
+
+                <h3>8. Service Availability</h3>
+                <p>We do not guarantee that the service will be available at all times. We reserve the right to modify, suspend, or discontinue the service at any time without notice.</p>
+
+                <h3>9. Changes to Terms</h3>
+                <p>We reserve the right to modify these terms at any time. Your continued use of the service after any changes constitutes acceptance of the new terms.</p>
+
+                <h3>10. Contact Information</h3>
+                <p>For questions about these Terms of Service, please contact us at support@bookifyai.com</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consent Modal -->
+    <div id="consent-modal" class="consent-modal">
+        <div class="consent-modal-content">
+            <div class="consent-header">
+                <h2>Welcome to BookifyAI</h2>
+            </div>
+            <div class="consent-body">
+                <p>Before you continue, please read and accept our terms and policies:</p>
+                <div class="consent-links">
+                    <a href="#" class="consent-link" id="consent-privacy-link">Privacy Policy</a>
+                    <span class="consent-separator">and</span>
+                    <a href="#" class="consent-link" id="consent-terms-link">Terms of Service</a>
+                </div>
+                <div class="consent-checkbox">
+                    <label>
+                        <input type="checkbox" id="consent-checkbox">
+                        <span>I have read and agree to the <a href="#" id="consent-privacy-checkbox-link">Privacy Policy</a> and <a href="#" id="consent-terms-checkbox-link">Terms of Service</a></span>
+                    </label>
+                </div>
+            </div>
+            <div class="consent-footer">
+                <button class="btn btn-primary" id="accept-consent-btn" disabled>Accept & Continue</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="/js/app.js"></script>

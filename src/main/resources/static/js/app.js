@@ -3,9 +3,11 @@ let currentBookId = null;
 let pdfCheckInterval = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    checkConsent();
     initializeTabs();
     initializeForm();
     loadHistory();
+    initializeModals();
 });
 
 function initializeTabs() {
@@ -469,3 +471,159 @@ document.getElementById('refresh-btn')?.addEventListener('click', () => {
     loadHistory();
     showToast('History refreshed', 'success');
 });
+
+function checkConsent() {
+    const consentAccepted = localStorage.getItem('bookifyai-consent-accepted');
+    
+    if (!consentAccepted) {
+        showConsentModal();
+    }
+}
+
+function showConsentModal() {
+    const consentModal = document.getElementById('consent-modal');
+    const consentCheckbox = document.getElementById('consent-checkbox');
+    const acceptBtn = document.getElementById('accept-consent-btn');
+    const consentPrivacyLink = document.getElementById('consent-privacy-link');
+    const consentTermsLink = document.getElementById('consent-terms-link');
+    const consentPrivacyCheckboxLink = document.getElementById('consent-privacy-checkbox-link');
+    const consentTermsCheckboxLink = document.getElementById('consent-terms-checkbox-link');
+    const privacyModal = document.getElementById('privacy-modal');
+    const termsModal = document.getElementById('terms-modal');
+
+    // Block page interaction
+    document.body.classList.add('consent-blocked');
+    consentModal.classList.add('active');
+
+    // Enable/disable accept button based on checkbox
+    consentCheckbox.addEventListener('change', () => {
+        acceptBtn.disabled = !consentCheckbox.checked;
+    });
+
+    // Open Privacy Policy from consent modal
+    consentPrivacyLink?.addEventListener('click', (e) => {
+        e.preventDefault();
+        consentModal.classList.remove('active');
+        privacyModal.classList.add('active');
+    });
+
+    consentPrivacyCheckboxLink?.addEventListener('click', (e) => {
+        e.preventDefault();
+        consentModal.classList.remove('active');
+        privacyModal.classList.add('active');
+    });
+
+    // Open Terms of Service from consent modal
+    consentTermsLink?.addEventListener('click', (e) => {
+        e.preventDefault();
+        consentModal.classList.remove('active');
+        termsModal.classList.add('active');
+    });
+
+    consentTermsCheckboxLink?.addEventListener('click', (e) => {
+        e.preventDefault();
+        consentModal.classList.remove('active');
+        termsModal.classList.add('active');
+    });
+
+    // Handle accept button
+    acceptBtn.addEventListener('click', () => {
+        if (consentCheckbox.checked) {
+            localStorage.setItem('bookifyai-consent-accepted', 'true');
+            localStorage.setItem('bookifyai-consent-date', new Date().toISOString());
+            consentModal.classList.remove('active');
+            document.body.classList.remove('consent-blocked');
+            showToast('Welcome to BookifyAI!', 'success');
+        }
+    });
+
+    // Prevent closing consent modal by clicking outside or ESC
+    consentModal.addEventListener('click', (e) => {
+        if (e.target === consentModal) {
+            e.stopPropagation();
+        }
+    });
+}
+
+function initializeModals() {
+    const privacyLink = document.getElementById('privacy-link');
+    const termsLink = document.getElementById('terms-link');
+    const privacyModal = document.getElementById('privacy-modal');
+    const termsModal = document.getElementById('terms-modal');
+    const privacyClose = document.getElementById('privacy-close');
+    const termsClose = document.getElementById('terms-close');
+
+    if (privacyLink) {
+        privacyLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            privacyModal.classList.add('active');
+        });
+    }
+
+    if (termsLink) {
+        termsLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            termsModal.classList.add('active');
+        });
+    }
+
+    if (privacyClose) {
+        privacyClose.addEventListener('click', () => {
+            privacyModal.classList.remove('active');
+            // If consent modal was open, show it again
+            const consentAccepted = localStorage.getItem('bookifyai-consent-accepted');
+            if (!consentAccepted) {
+                showConsentModal();
+            }
+        });
+    }
+
+    if (termsClose) {
+        termsClose.addEventListener('click', () => {
+            termsModal.classList.remove('active');
+            // If consent modal was open, show it again
+            const consentAccepted = localStorage.getItem('bookifyai-consent-accepted');
+            if (!consentAccepted) {
+                showConsentModal();
+            }
+        });
+    }
+
+    // Close modal when clicking outside
+    if (privacyModal) {
+        privacyModal.addEventListener('click', (e) => {
+            if (e.target === privacyModal) {
+                privacyModal.classList.remove('active');
+                // If consent modal was open, show it again
+                const consentAccepted = localStorage.getItem('bookifyai-consent-accepted');
+                if (!consentAccepted) {
+                    showConsentModal();
+                }
+            }
+        });
+    }
+
+    if (termsModal) {
+        termsModal.addEventListener('click', (e) => {
+            if (e.target === termsModal) {
+                termsModal.classList.remove('active');
+                // If consent modal was open, show it again
+                const consentAccepted = localStorage.getItem('bookifyai-consent-accepted');
+                if (!consentAccepted) {
+                    showConsentModal();
+                }
+            }
+        });
+    }
+
+    // Close modal with Escape key (but not consent modal)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const consentAccepted = localStorage.getItem('bookifyai-consent-accepted');
+            if (consentAccepted) {
+                privacyModal?.classList.remove('active');
+                termsModal?.classList.remove('active');
+            }
+        }
+    });
+}
