@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GiftAI - Personalized E-Book Creator</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">📚 GiftAI</h1>
+                <p class="tagline">Create Personalized E-Books</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="create">Create Book</button>
+                <button class="tab-btn" data-tab="history">History</button>
+            </div>
+
+            <div class="tab-content active" id="create-tab">
+                <div class="card">
+                    <h2 class="card-title">Create Personalized E-Book</h2>
+                    <form id="book-form" class="gift-form">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Recipient's Name</label>
+                            <input type="text" id="name" name="name" class="form-input" 
+                                   placeholder="Enter the recipient's name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" id="age" name="age" class="form-input" 
+                                   placeholder="Enter age" min="1" max="120" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="theme" class="form-label">Theme</label>
+                            <input type="text" id="theme" name="theme" class="form-input" 
+                                   placeholder="e.g., Adventure, Fantasy, Friendship" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tone" class="form-label">Tone</label>
+                            <input type="text" id="tone" name="tone" class="form-input" 
+                                   placeholder="e.g., Warm, Exciting, Magical" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="giver" class="form-label">Gift Giver</label>
+                            <input type="text" id="giver" name="giver" class="form-input" 
+                                   placeholder="Who is giving this book?" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appearance" class="form-label">Appearance (Optional)</label>
+                            <textarea id="appearance" name="appearance" class="form-textarea" 
+                                      rows="3" placeholder="e.g., Brown hair, blue eyes, tall, wears glasses... (This will be used to create a visual description in the story)"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <span class="btn-text">Create Book</span>
+                            <span class="btn-loader" style="display: none;">⏳ Generating...</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div id="result-card" class="card result-card" style="display: none;">
+                    <h2 class="card-title">Generated Book</h2>
+                    <div id="result-meta" class="result-meta"></div>
+                    <div id="result-content" class="result-content"></div>
+                    <div id="pdf-section" class="pdf-section" style="display: none;">
+                        <div class="pdf-controls">
+                            <button class="btn btn-primary" id="download-pdf-btn">📥 Download PDF</button>
+                            <button class="btn btn-secondary" id="view-pdf-btn">👁️ View PDF</button>
+                        </div>
+                        <div id="pdf-viewer-container" class="pdf-viewer-container" style="display: none;">
+                            <div class="pdf-viewer-wrapper">
+                                <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
+                            </div>
+                            <div class="pdf-navigation">
+                                <button class="btn btn-secondary" id="prev-page-btn">◀ Previous</button>
+                                <span id="page-info">Page 1 of 1</span>
+                                <button class="btn btn-secondary" id="next-page-btn">Next ▶</button>
+                                <input type="number" id="page-input" class="page-input" min="1" value="1" placeholder="Go to page">
+                                <button class="btn btn-secondary" id="go-page-btn">Go</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="pdf-loading" class="pdf-loading" style="display: none;">
+                        <p>📄 PDF is being generated in the background...</p>
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="history-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Book History</h2>
+                        <button class="btn btn-secondary" id="refresh-btn">🔄 Refresh</button>
+                    </div>
+                    <div id="history-content" class="history-content">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
