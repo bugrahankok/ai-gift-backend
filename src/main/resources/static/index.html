@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GiftAI - Personalized E-Book Creator</title>
+    <title>BookifyAI - Personalized E-Book Creator</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,11 @@
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <h1 class="logo">📚 GiftAI</h1>
-                <p class="tagline">Create Personalized E-Books</p>
+                <div class="logo-container">
+                    <div class="logo-icon">📖</div>
+                    <h1 class="logo">Bookify<span class="logo-ai">AI</span></h1>
+                </div>
+                <p class="tagline">Create Personalized E-Books with AI</p>
             </div>
         </header>
 
@@ -42,15 +45,136 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="theme" class="form-label">Theme</label>
-                            <input type="text" id="theme" name="theme" class="form-input" 
-                                   placeholder="e.g., Adventure, Fantasy, Friendship" required>
+                            <label class="form-label">Book Theme</label>
+                            <div class="option-grid" id="theme-options">
+                                <div class="option-card" data-value="Adventure">
+                                    <div class="option-icon">🏔️</div>
+                                    <div class="option-label">Adventure</div>
+                                </div>
+                                <div class="option-card" data-value="Fantasy">
+                                    <div class="option-icon">🧙</div>
+                                    <div class="option-label">Fantasy</div>
+                                </div>
+                                <div class="option-card" data-value="Friendship">
+                                    <div class="option-icon">👫</div>
+                                    <div class="option-label">Friendship</div>
+                                </div>
+                                <div class="option-card" data-value="Magic">
+                                    <div class="option-icon">✨</div>
+                                    <div class="option-label">Magic</div>
+                                </div>
+                                <div class="option-card" data-value="Nature">
+                                    <div class="option-icon">🌳</div>
+                                    <div class="option-label">Nature</div>
+                                </div>
+                                <div class="option-card" data-value="Animals">
+                                    <div class="option-icon">🐾</div>
+                                    <div class="option-label">Animals</div>
+                                </div>
+                                <div class="option-card" data-value="Space">
+                                    <div class="option-icon">🚀</div>
+                                    <div class="option-label">Space</div>
+                                </div>
+                                <div class="option-card" data-value="Ocean">
+                                    <div class="option-icon">🌊</div>
+                                    <div class="option-label">Ocean</div>
+                                </div>
+                                <div class="option-card" data-value="Fairy Tale">
+                                    <div class="option-icon">👑</div>
+                                    <div class="option-label">Fairy Tale</div>
+                                </div>
+                                <div class="option-card" data-value="Superhero">
+                                    <div class="option-icon">🦸</div>
+                                    <div class="option-label">Superhero</div>
+                                </div>
+                                <div class="option-card" data-value="Mystery">
+                                    <div class="option-icon">🔍</div>
+                                    <div class="option-label">Mystery</div>
+                                </div>
+                                <div class="option-card" data-value="Science">
+                                    <div class="option-icon">🔬</div>
+                                    <div class="option-label">Science</div>
+                                </div>
+                                <div class="option-card" data-value="Pirates">
+                                    <div class="option-icon">🏴‍☠️</div>
+                                    <div class="option-label">Pirates</div>
+                                </div>
+                                <div class="option-card" data-value="Dinosaurs">
+                                    <div class="option-icon">🦕</div>
+                                    <div class="option-label">Dinosaurs</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="theme" name="theme" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="tone" class="form-label">Tone</label>
-                            <input type="text" id="tone" name="tone" class="form-input" 
-                                   placeholder="e.g., Warm, Exciting, Magical" required>
+                            <label class="form-label">Book Type</label>
+                            <div class="option-grid" id="type-options">
+                                <div class="option-card" data-value="Story">
+                                    <div class="option-icon">📖</div>
+                                    <div class="option-label">Story</div>
+                                </div>
+                                <div class="option-card" data-value="Adventure Story">
+                                    <div class="option-icon">🗺️</div>
+                                    <div class="option-label">Adventure Story</div>
+                                </div>
+                                <div class="option-card" data-value="Fairy Tale">
+                                    <div class="option-icon">🧚</div>
+                                    <div class="option-label">Fairy Tale</div>
+                                </div>
+                                <div class="option-card" data-value="Bedtime Story">
+                                    <div class="option-icon">🌙</div>
+                                    <div class="option-label">Bedtime Story</div>
+                                </div>
+                                <div class="option-card" data-value="Educational">
+                                    <div class="option-icon">📚</div>
+                                    <div class="option-label">Educational</div>
+                                </div>
+                                <div class="option-card" data-value="Comedy">
+                                    <div class="option-icon">😄</div>
+                                    <div class="option-label">Comedy</div>
+                                </div>
+                                <div class="option-card" data-value="Mystery Story">
+                                    <div class="option-icon">🕵️</div>
+                                    <div class="option-label">Mystery Story</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="book-type" name="book-type" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Narrative Tone</label>
+                            <div class="option-grid" id="tone-options">
+                                <div class="option-card" data-value="Warm">
+                                    <div class="option-icon">❤️</div>
+                                    <div class="option-label">Warm</div>
+                                </div>
+                                <div class="option-card" data-value="Exciting">
+                                    <div class="option-icon">⚡</div>
+                                    <div class="option-label">Exciting</div>
+                                </div>
+                                <div class="option-card" data-value="Magical">
+                                    <div class="option-icon">🌟</div>
+                                    <div class="option-label">Magical</div>
+                                </div>
+                                <div class="option-card" data-value="Playful">
+                                    <div class="option-icon">🎈</div>
+                                    <div class="option-label">Playful</div>
+                                </div>
+                                <div class="option-card" data-value="Gentle">
+                                    <div class="option-icon">🕊️</div>
+                                    <div class="option-label">Gentle</div>
+                                </div>
+                                <div class="option-card" data-value="Inspiring">
+                                    <div class="option-icon">💫</div>
+                                    <div class="option-label">Inspiring</div>
+                                </div>
+                                <div class="option-card" data-value="Mysterious">
+                                    <div class="option-icon">🌙</div>
+                                    <div class="option-label">Mysterious</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="tone" name="tone" required>
                         </div>
 
                         <div class="form-group">

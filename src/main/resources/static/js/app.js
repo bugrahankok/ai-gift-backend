@@ -35,6 +35,10 @@ function initializeForm() {
     const btnText = submitBtn.querySelector('.btn-text');
     const btnLoader = submitBtn.querySelector('.btn-loader');
 
+    setupOptionCards('theme-options', 'theme');
+    setupOptionCards('type-options', 'book-type');
+    setupOptionCards('tone-options', 'tone');
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -47,9 +51,14 @@ function initializeForm() {
             giver: formData.get('giver'),
             appearance: formData.get('appearance') || ''
         };
+        
+        const bookType = formData.get('book-type');
+        if (bookType) {
+            bookData.theme = bookData.theme + ' - ' + bookType;
+        }
 
         if (!bookData.name || !bookData.age || !bookData.theme || !bookData.tone || !bookData.giver) {
-            showToast('Please fill in all required fields', 'error');
+            showToast('Please fill in all required fields and select theme, type, and tone', 'error');
             return;
         }
 
@@ -440,6 +449,20 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function setupOptionCards(containerId, hiddenInputId) {
+    const container = document.getElementById(containerId);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    const cards = container.querySelectorAll('.option-card');
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            cards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            hiddenInput.value = card.getAttribute('data-value');
+        });
+    });
 }
 
 document.getElementById('refresh-btn')?.addEventListener('click', () => {

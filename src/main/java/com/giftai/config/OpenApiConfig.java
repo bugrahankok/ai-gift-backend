@@ -13,12 +13,12 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("GiftAI API")
+                        .title("BookifyAI API")
                         .version("1.0.0")
-                        .description("AI-powered gift generation system API documentation")
+                        .description("AI-powered personalized e-book generation system API documentation")
                         .contact(new Contact()
-                                .name("GiftAI Team")
-                                .email("support@giftai.com")));
+                                .name("BookifyAI Team")
+                                .email("support@bookifyai.com")));
     }
 }
 
