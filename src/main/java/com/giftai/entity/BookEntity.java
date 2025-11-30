@@ -28,8 +28,14 @@ public class BookEntity {
     @Column(length = 50)
     private String gender;
     
+    @Column(length = 100)
+    private String language;
+    
     @Column(nullable = false, length = 200)
     private String theme;
+    
+    @Column(length = 500)
+    private String mainTopic;
     
     @Column(nullable = false, length = 200)
     private String tone;
@@ -41,7 +47,7 @@ public class BookEntity {
     private String appearance;
     
     @Column(columnDefinition = "TEXT")
-    private String characters; // JSON string of List<CharacterInfo>
+    private String characters;
     
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;

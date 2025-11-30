@@ -78,12 +78,38 @@ public class BookProvider {
                 charactersInfo = charsBuilder.toString();
             }
             
+            String languageInfo = "";
+            if (request.getLanguage() != null && !request.getLanguage().trim().isEmpty()) {
+                languageInfo = String.format(
+                    "\nLanguage: Write the ENTIRE story in %s language\n" +
+                    "- All text, dialogue, narration, and content must be in %s\n" +
+                    "- Use proper grammar and vocabulary for %s\n" +
+                    "- Maintain cultural authenticity if applicable\n",
+                    request.getLanguage(),
+                    request.getLanguage(),
+                    request.getLanguage()
+                );
+            }
+            
+            String mainTopicInfo = "";
+            if (request.getMainTopic() != null && !request.getMainTopic().trim().isEmpty()) {
+                mainTopicInfo = String.format(
+                    "\nMain Topic/Subject: %s\n" +
+                    "- The story should revolve around this main topic\n" +
+                    "- Incorporate this theme throughout the narrative\n" +
+                    "- Make it the central focus of the story\n",
+                    request.getMainTopic()
+                );
+            }
+            
             String prompt = String.format(
                 "Create a personalized children's book as a gift. Write a complete, engaging, LONG story with the following details:\n\n" +
                 "Recipient's Name: %s\n" +
                 "Recipient's Age: %d years old\n" +
                 "%s" +
+                "%s" +
                 "Theme: %s\n" +
+                "%s" +
                 "Tone: %s\n" +
                 "Gift Giver: %s\n" +
                 "%s" +
@@ -101,7 +127,9 @@ public class BookProvider {
                 request.getName(),
                 request.getAge(),
                 genderInfo,
+                languageInfo,
                 request.getTheme(),
+                mainTopicInfo,
                 request.getTone(),
                 request.getGiver(),
                 appearanceDescription,

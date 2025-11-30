@@ -17,7 +17,9 @@ public class BookResponse {
     private String name;
     private Integer age;
     private String gender;
+    private String language;
     private String theme;
+    private String mainTopic;
     private String tone;
     private String giver;
     private String appearance;

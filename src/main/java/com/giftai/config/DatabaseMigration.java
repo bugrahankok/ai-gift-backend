@@ -193,6 +193,40 @@ public class DatabaseMigration {
                 log.info("✅ 'characters' column already exists in books table");
             }
             
+            // Check if language column exists in books table
+            String checkLanguageColumnSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name = 'books' AND column_name = 'language'
+                """;
+            
+            Integer languageColumnExists = jdbcTemplate.queryForObject(checkLanguageColumnSql, Integer.class);
+            
+            if (languageColumnExists == null || languageColumnExists == 0) {
+                log.info("Adding missing 'language' column to books table...");
+                jdbcTemplate.execute("ALTER TABLE books ADD COLUMN IF NOT EXISTS language VARCHAR(100)");
+                log.info("✅ Successfully added 'language' column to books table");
+            } else {
+                log.info("✅ 'language' column already exists in books table");
+            }
+            
+            // Check if main_topic column exists in books table
+            String checkMainTopicColumnSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name = 'books' AND column_name = 'main_topic'
+                """;
+            
+            Integer mainTopicColumnExists = jdbcTemplate.queryForObject(checkMainTopicColumnSql, Integer.class);
+            
+            if (mainTopicColumnExists == null || mainTopicColumnExists == 0) {
+                log.info("Adding missing 'main_topic' column to books table...");
+                jdbcTemplate.execute("ALTER TABLE books ADD COLUMN IF NOT EXISTS main_topic VARCHAR(500)");
+                log.info("✅ Successfully added 'main_topic' column to books table");
+            } else {
+                log.info("✅ 'main_topic' column already exists in books table");
+            }
+            
             log.info("Database migration completed successfully");
             
         } catch (Exception e) {

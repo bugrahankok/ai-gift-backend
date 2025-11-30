@@ -17,9 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('book');
     if (bookId) {
-        // Load the book when page loads
+        // Switch to create tab and load the book when page loads
         setTimeout(() => {
-            viewBookDetails(bookId);
+            // Switch to create tab to show the book
+            const createTab = document.querySelector('.tab-btn[data-tab="create"]');
+            if (createTab) {
+                createTab.click();
+            }
+            setTimeout(() => {
+                viewBookDetails(bookId);
+            }, 300);
         }, 500);
     }
 });
@@ -57,6 +64,7 @@ function initializeForm() {
     setupOptionCards('theme-options', 'theme');
     setupOptionCards('type-options', 'book-type');
     setupOptionCards('tone-options', 'tone');
+    setupLanguageOptions();
     
     // Initialize character management
     initializeCharacters();
@@ -82,11 +90,24 @@ function initializeForm() {
         // Collect characters
         const characters = collectCharacters();
         
+        // Get language
+        let language = formData.get('language');
+        if (language === 'OTHER') {
+            const customLanguage = document.getElementById('language-custom')?.value?.trim();
+            if (!customLanguage) {
+                showToast('Please enter a language name', 'error');
+                return;
+            }
+            language = customLanguage;
+        }
+        
         const bookData = {
             name: formData.get('name'),
             age: age,
             gender: formData.get('gender') || null,
+            language: language || 'English',
             theme: formData.get('theme'),
+            mainTopic: formData.get('main-topic') || null,
             tone: formData.get('tone'),
             giver: formData.get('giver'),
             appearance: formData.get('appearance') || '',
@@ -108,6 +129,9 @@ function initializeForm() {
         btnText.style.display = 'none';
         btnLoader.style.display = 'inline';
 
+        // Show generating animation
+        showGeneratingAnimation();
+
         try {
             console.log('Sending request:', bookData);
             const response = await fetch(`${API_BASE_URL}/generate`, {
@@ -121,6 +145,7 @@ function initializeForm() {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Error response:', errorText);
+                hideGeneratingAnimation();
                 throw new Error(`Failed to create book: ${response.status} - ${errorText}`);
             }
 
@@ -128,30 +153,37 @@ function initializeForm() {
             console.log('Response received:', result);
             
             if (!result || !result.content) {
+                hideGeneratingAnimation();
                 throw new Error('Invalid response received');
             }
             
             currentBookId = result.bookId;
-            displayResult(result);
-            showToast('Book created successfully!', 'success');
             
-            if (!result.pdfReady) {
-                startPdfStatusCheck(result.bookId);
-            } else {
-                showPdfControls(result);
-            }
+            // Hide animation and show success message
+            updateGeneratingMessage('🎉 Your book is ready!', 'Opening your book in a new window...');
             
-            form.reset();
-            
+            // Wait a moment then open in new page
             setTimeout(() => {
-                loadHistory();
+                hideGeneratingAnimation();
+                form.reset();
+                
+                // Open book in new page
+                const bookUrl = `/?book=${result.bookId}`;
+                window.open(bookUrl, '_blank');
+                
+                showToast('Book created successfully! Opening in new window...', 'success');
+                
                 // Refresh discover page if book is public
-                if (result.isPublic) {
-                    loadDiscover();
-                }
-            }, 1000);
+                setTimeout(() => {
+                    loadHistory();
+                    if (result.isPublic) {
+                        loadDiscover();
+                    }
+                }, 1000);
+            }, 2000);
         } catch (error) {
             console.error('Error details:', error);
+            hideGeneratingAnimation();
             showToast('An error occurred: ' + error.message, 'error');
         } finally {
             submitBtn.disabled = false;
@@ -220,11 +252,9 @@ function displayResult(book) {
     // Show share bar
     document.getElementById('share-bar').style.display = 'block';
     
-    resultContent.innerHTML = `
-        <div style="word-wrap: break-word; line-height: 1.8; white-space: pre-wrap;">
-            ${escapeHtml(book.content).replace(/\n/g, '<br>')}
-        </div>
-    `;
+    // Format content with beautiful book-like styling
+    const formattedContent = formatBookContent(book.content);
+    resultContent.innerHTML = formattedContent;
     
     resultCard.style.display = 'block';
     setTimeout(() => {
@@ -313,7 +343,21 @@ async function loadPdf(url) {
     try {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         
-        const loadingTask = pdfjsLib.getDocument(url);
+        // Get authentication headers
+        const headers = getAuthHeaders();
+        
+        // Convert headers object to format expected by PDF.js
+        const httpHeaders = {};
+        if (headers['Authorization']) {
+            httpHeaders['Authorization'] = headers['Authorization'];
+        }
+        
+        const loadingTask = pdfjsLib.getDocument({
+            url: url,
+            httpHeaders: httpHeaders,
+            withCredentials: false
+        });
+        
         pdfDoc = await loadingTask.promise;
         totalPages = pdfDoc.numPages;
         
@@ -322,7 +366,8 @@ async function loadPdf(url) {
         renderPage(currentPage);
     } catch (error) {
         console.error('Error loading PDF:', error);
-        showToast('Failed to load PDF. Please try downloading it instead.', 'error');
+        console.error('PDF URL:', url);
+        showToast('Failed to load PDF: ' + (error.message || 'Unknown error') + '. Please try downloading it instead.', 'error');
     }
 }
 
@@ -696,6 +741,34 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function formatBookContent(content) {
+    if (!content) return '';
+    
+    // Split content into paragraphs
+    const paragraphs = content.split(/\n\n+/);
+    let formatted = '';
+    
+    paragraphs.forEach((para, index) => {
+        para = para.trim();
+        if (para.length === 0) return;
+        
+        // Check if it's a chapter heading
+        const chapterPattern = /^(Chapter|Bölüm|Kapitel|Chapitre|Capítulo|Capitolo|Глава|章|章|الفصل|Kapitel|Kapitulo)\s+\d+/i;
+        if (chapterPattern.test(para)) {
+            formatted += `<h2 class="chapter-heading">${escapeHtml(para)}</h2>`;
+        } else if (para.length < 100 && para.match(/^[A-Z][^.!?]*[.!?]?$/)) {
+            // Might be a section title
+            formatted += `<h3 class="section-heading">${escapeHtml(para)}</h3>`;
+        } else {
+            // Regular paragraph - replace single newlines with spaces
+            const cleanPara = para.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+            formatted += `<p class="story-paragraph">${escapeHtml(cleanPara)}</p>`;
+        }
+    });
+    
+    return formatted;
 }
 
 function setupOptionCards(containerId, hiddenInputId) {
@@ -1174,4 +1247,98 @@ function collectCharacters() {
     });
     
     return characters;
+}
+
+function showGeneratingAnimation() {
+    const modal = document.getElementById('book-generating-modal');
+    const message = document.getElementById('generating-message');
+    const submessage = document.getElementById('generating-submessage');
+    const animation = document.getElementById('generating-animation');
+    
+    modal.style.display = 'flex';
+    
+    // Messages to cycle through
+    const messages = [
+        { main: '✨ Your book is being written...', sub: 'Our AI is crafting your personalized story', icon: '✍️' },
+        { main: '🎨 Adding beautiful illustrations...', sub: 'Making your book visually stunning', icon: '🎨' },
+        { main: '📚 Organizing chapters...', sub: 'Structuring your story perfectly', icon: '📚' },
+        { main: '✨ Adding magical touches...', sub: 'Making every page special', icon: '✨' },
+        { main: '🌟 Finalizing your book...', sub: 'Almost ready!', icon: '🌟' }
+    ];
+    
+    let messageIndex = 0;
+    
+    const messageInterval = setInterval(() => {
+        if (messageIndex < messages.length) {
+            const msg = messages[messageIndex];
+            message.textContent = msg.main;
+            submessage.textContent = msg.sub;
+            animation.textContent = msg.icon;
+            messageIndex++;
+        } else {
+            clearInterval(messageInterval);
+        }
+    }, 3000);
+    
+    // Store interval to clear it later
+    window.generatingMessageInterval = messageInterval;
+}
+
+function updateGeneratingMessage(main, sub) {
+    const message = document.getElementById('generating-message');
+    const submessage = document.getElementById('generating-submessage');
+    const animation = document.getElementById('generating-animation');
+    
+    if (message) message.textContent = main;
+    if (submessage) submessage.textContent = sub;
+    if (animation) animation.textContent = '🎉';
+}
+
+function hideGeneratingAnimation() {
+    const modal = document.getElementById('book-generating-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Clear message interval if exists
+    if (window.generatingMessageInterval) {
+        clearInterval(window.generatingMessageInterval);
+        window.generatingMessageInterval = null;
+    }
+}
+
+function setupLanguageOptions() {
+    const container = document.getElementById('language-options');
+    const hiddenInput = document.getElementById('language');
+    const customContainer = document.getElementById('language-custom-container');
+    const customInput = document.getElementById('language-custom');
+    const cards = container.querySelectorAll('.option-card');
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            // Remove selected class from all cards
+            cards.forEach(c => c.classList.remove('selected'));
+            // Add selected class to clicked card
+            card.classList.add('selected');
+            
+            const value = card.getAttribute('data-value');
+            hiddenInput.value = value;
+            
+            // Show/hide custom input
+            if (value === 'OTHER') {
+                customContainer.style.display = 'block';
+                customInput.required = true;
+            } else {
+                customContainer.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        });
+    });
+    
+    // Set default to English
+    const englishCard = Array.from(cards).find(c => c.getAttribute('data-value') === 'English');
+    if (englishCard) {
+        englishCard.click();
+    }
 }

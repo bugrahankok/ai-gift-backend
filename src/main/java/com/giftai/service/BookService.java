@@ -54,7 +54,9 @@ public class BookService {
                 .name(request.getName())
                 .age(request.getAge())
                 .gender(request.getGender())
+                .language(request.getLanguage())
                 .theme(request.getTheme())
+                .mainTopic(request.getMainTopic())
                 .tone(request.getTone())
                 .giver(request.getGiver())
                 .appearance(request.getAppearance())
@@ -68,7 +70,8 @@ public class BookService {
         entity = bookRepository.save(entity);
         log.info("Book saved with ID: {} for user: {}", entity.getId(), userId);
         
-        pdfGenerationService.generatePdfAsync(entity.getId(), content, request.getName());
+        pdfGenerationService.generatePdfAsync(entity.getId(), content, request.getName(), 
+                request.getLanguage() != null ? request.getLanguage() : "English");
         
         return toResponse(entity);
     }
@@ -160,7 +163,9 @@ public class BookService {
                 .name(entity.getName())
                 .age(entity.getAge())
                 .gender(entity.getGender())
+                .language(entity.getLanguage())
                 .theme(entity.getTheme())
+                .mainTopic(entity.getMainTopic())
                 .tone(entity.getTone())
                 .giver(entity.getGiver())
                 .appearance(entity.getAppearance())

@@ -24,8 +24,12 @@ public class BookRequest {
     
     private String gender;
     
+    private String language;
+    
     @NotBlank(message = "Theme is required")
     private String theme;
+    
+    private String mainTopic;
     
     @NotBlank(message = "Tone is required")
     private String tone;

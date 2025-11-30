@@ -32,12 +32,24 @@
 
         <main class="main-content">
             <div class="tabs">
-                <button class="tab-btn active" data-tab="create">Create Book</button>
+                <button class="tab-btn active" data-tab="discover">Discover</button>
+                <button class="tab-btn" data-tab="create">Create Book</button>
                 <button class="tab-btn" data-tab="history">My Books</button>
-                <button class="tab-btn" data-tab="discover">Discover</button>
             </div>
 
-            <div class="tab-content active" id="create-tab">
+            <div class="tab-content active" id="discover-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Discover Public Books</h2>
+                        <button class="btn btn-secondary" id="refresh-discover-btn">🔄 Refresh</button>
+                    </div>
+                    <div id="discover-content" class="history-content">
+                        <div class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="create-tab">
                 <div class="card">
                     <h2 class="card-title">Create Personalized E-Book</h2>
                     <form id="book-form" class="gift-form">
@@ -45,6 +57,12 @@
                             <label for="name" class="form-label">Recipient's Name</label>
                             <input type="text" id="name" name="name" class="form-input" 
                                    placeholder="Enter the recipient's name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="appearance" class="form-label">Appearance (Optional)</label>
+                            <textarea id="appearance" name="appearance" class="form-textarea" 
+                                      rows="3" placeholder="e.g., Brown hair, blue eyes, tall, wears glasses... (This will be used to create a visual description in the story)"></textarea>
                         </div>
 
                         <div class="form-group">
@@ -246,6 +264,71 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="main-topic" class="form-label">Main Topic (Optional)</label>
+                            <input type="text" id="main-topic" name="main-topic" class="form-input" 
+                                   placeholder="What should the main topic/subject of the book be? (e.g., friendship, courage, discovery, family...)">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Language</label>
+                            <div class="option-grid" id="language-options">
+                                <div class="option-card" data-value="English">
+                                    <div class="option-icon">🇬🇧</div>
+                                    <div class="option-label">English</div>
+                                </div>
+                                <div class="option-card" data-value="Spanish">
+                                    <div class="option-icon">🇪🇸</div>
+                                    <div class="option-label">Spanish</div>
+                                </div>
+                                <div class="option-card" data-value="French">
+                                    <div class="option-icon">🇫🇷</div>
+                                    <div class="option-label">French</div>
+                                </div>
+                                <div class="option-card" data-value="German">
+                                    <div class="option-icon">🇩🇪</div>
+                                    <div class="option-label">German</div>
+                                </div>
+                                <div class="option-card" data-value="Italian">
+                                    <div class="option-icon">🇮🇹</div>
+                                    <div class="option-label">Italian</div>
+                                </div>
+                                <div class="option-card" data-value="Portuguese">
+                                    <div class="option-icon">🇵🇹</div>
+                                    <div class="option-label">Portuguese</div>
+                                </div>
+                                <div class="option-card" data-value="Russian">
+                                    <div class="option-icon">🇷🇺</div>
+                                    <div class="option-label">Russian</div>
+                                </div>
+                                <div class="option-card" data-value="Chinese">
+                                    <div class="option-icon">🇨🇳</div>
+                                    <div class="option-label">Chinese</div>
+                                </div>
+                                <div class="option-card" data-value="Japanese">
+                                    <div class="option-icon">🇯🇵</div>
+                                    <div class="option-label">Japanese</div>
+                                </div>
+                                <div class="option-card" data-value="Arabic">
+                                    <div class="option-icon">🇸🇦</div>
+                                    <div class="option-label">Arabic</div>
+                                </div>
+                                <div class="option-card" data-value="Turkish">
+                                    <div class="option-icon">🇹🇷</div>
+                                    <div class="option-label">Turkish</div>
+                                </div>
+                                <div class="option-card" data-value="OTHER" id="language-other">
+                                    <div class="option-icon">🌍</div>
+                                    <div class="option-label">Other</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="language" name="language" required>
+                            <div id="language-custom-container" style="display: none; margin-top: 15px;">
+                                <input type="text" id="language-custom" class="form-input" 
+                                       placeholder="Enter language name (e.g., Dutch, Korean, Hindi...)">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label for="giver" class="form-label">Gift Giver</label>
                             <input type="text" id="giver" name="giver" class="form-input" 
                                    placeholder="Who is giving this book?" required>
@@ -259,12 +342,6 @@
                                 </button>
                             </div>
                             <div id="characters-container"></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="appearance" class="form-label">Appearance (Optional)</label>
-                            <textarea id="appearance" name="appearance" class="form-textarea" 
-                                      rows="3" placeholder="e.g., Brown hair, blue eyes, tall, wears glasses... (This will be used to create a visual description in the story)"></textarea>
                         </div>
 
                         <div class="form-group">
@@ -297,6 +374,20 @@
                             <span class="btn-loader" style="display: none;">⏳ Generating...</span>
                         </button>
                     </form>
+                </div>
+
+                <!-- Loading Animation Modal -->
+                <div id="book-generating-modal" class="modal" style="display: none;">
+                    <div class="modal-content" style="max-width: 500px; text-align: center;">
+                        <div class="modal-body" style="padding: 40px;">
+                            <div id="generating-animation" style="font-size: 4rem; margin-bottom: 20px; animation: bounce 1s infinite;">📖</div>
+                            <h2 id="generating-message" style="color: var(--primary-color); margin-bottom: 15px;">✨ Your book is being written...</h2>
+                            <p id="generating-submessage" style="color: var(--text-secondary); font-size: 1.1rem;">Please wait while we create your personalized story</p>
+                            <div class="loading-spinner" style="margin-top: 30px;">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="result-card" class="card result-card" style="display: none;">
@@ -367,17 +458,6 @@
                 </div>
             </div>
 
-            <div class="tab-content" id="discover-tab">
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">Discover Public Books</h2>
-                        <button class="btn btn-secondary" id="refresh-discover-btn">🔄 Refresh</button>
-                    </div>
-                    <div id="discover-content" class="history-content">
-                        <div class="loading">Loading...</div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
 

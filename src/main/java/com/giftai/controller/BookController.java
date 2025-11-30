@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -93,7 +94,11 @@ public class BookController {
     
     @GetMapping("/{id}/pdf")
     @Operation(summary = "Download PDF", description = "Downloads the PDF file for a book")
-    public ResponseEntity<Resource> downloadPdf(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
+    public ResponseEntity<Resource> downloadPdf(@PathVariable Long id, Authentication authentication) {
+        UserEntity user = null;
+        if (authentication != null && authentication.getPrincipal() instanceof UserEntity) {
+            user = (UserEntity) authentication.getPrincipal();
+        }
         BookResponse book = bookService.getBookById(id);
         
         // Check access: public book or owner
