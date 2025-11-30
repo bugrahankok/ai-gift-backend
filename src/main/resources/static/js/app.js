@@ -53,6 +53,7 @@ function initializeForm() {
     const btnText = submitBtn.querySelector('.btn-text');
     const btnLoader = submitBtn.querySelector('.btn-loader');
 
+    setupOptionCards('age-options', 'age');
     setupOptionCards('theme-options', 'theme');
     setupOptionCards('type-options', 'book-type');
     setupOptionCards('tone-options', 'tone');
@@ -68,9 +69,14 @@ function initializeForm() {
         
         const formData = new FormData(form);
         const visibility = formData.get('visibility');
+        const ageValue = formData.get('age');
+        // Age value is already the starting age of the range (e.g., 3 for 3-5 years)
+        const age = ageValue ? parseInt(ageValue) : null;
+        
         const bookData = {
             name: formData.get('name'),
-            age: parseInt(formData.get('age')),
+            age: age,
+            gender: formData.get('gender') || null,
             theme: formData.get('theme'),
             tone: formData.get('tone'),
             giver: formData.get('giver'),

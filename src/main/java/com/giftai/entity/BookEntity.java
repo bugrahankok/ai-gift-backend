@@ -25,6 +25,9 @@ public class BookEntity {
     @Column(nullable = false)
     private Integer age;
     
+    @Column(length = 50)
+    private String gender;
+    
     @Column(nullable = false, length = 200)
     private String theme;
     

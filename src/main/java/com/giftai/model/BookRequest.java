@@ -20,6 +20,8 @@ public class BookRequest {
     @Max(value = 120, message = "Age must be at most 120")
     private Integer age;
     
+    private String gender;
+    
     @NotBlank(message = "Theme is required")
     private String theme;
     

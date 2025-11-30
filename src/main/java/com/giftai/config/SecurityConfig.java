@@ -37,9 +37,10 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/css/**", "/js/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/api/book/discover", "/api/book/{id}").permitAll()
-                .requestMatchers("/api/book/generate", "/api/book/history").authenticated()
+                .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/profile.html", "/css/**", "/js/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/api/book/discover", "/api/book/{id}", "/api/book/{id}/pdf", "/api/book/{id}/status").permitAll()
+                .requestMatchers("/api/book/generate", "/api/book/history", "/api/book/{id}/visibility").authenticated()
+                .requestMatchers("/api/user/**").authenticated()
                 .requestMatchers("/api/book/**").permitAll()
                 .anyRequest().permitAll()
             )

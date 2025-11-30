@@ -14,7 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -32,9 +32,12 @@ public class BookController {
     
     @PostMapping("/generate")
     @Operation(summary = "Generate a new personalized book", description = "Generates a personalized e-book based on recipient information")
-    public ResponseEntity<?> generateBook(@Valid @RequestBody BookRequest request, Authentication authentication) {
+    public ResponseEntity<?> generateBook(@Valid @RequestBody BookRequest request, @AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication required", "message", "Please login to create books"));
+        }
         try {
-            UserEntity user = (UserEntity) authentication.getPrincipal();
             BookResponse response = bookService.generateBook(request, user.getId());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
@@ -45,8 +48,11 @@ public class BookController {
     
     @GetMapping("/history")
     @Operation(summary = "Get book history", description = "Retrieves all generated books for the authenticated user")
-    public ResponseEntity<List<BookResponse>> getBookHistory(Authentication authentication) {
-        UserEntity user = (UserEntity) authentication.getPrincipal();
+    public ResponseEntity<?> getBookHistory(@AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Authentication required");
+        }
         List<BookResponse> books = bookService.getUserBooks(user.getId());
         return ResponseEntity.ok(books);
     }
@@ -60,12 +66,11 @@ public class BookController {
     
     @GetMapping("/{id}")
     @Operation(summary = "Get book by ID", description = "Retrieves a specific book by its ID")
-    public ResponseEntity<BookResponse> getBookById(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<BookResponse> getBookById(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
         BookResponse book = bookService.getBookById(id);
         
         // Check if book is public or belongs to authenticated user
-        if (authentication != null) {
-            UserEntity user = (UserEntity) authentication.getPrincipal();
+        if (user != null) {
             if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
@@ -88,12 +93,11 @@ public class BookController {
     
     @GetMapping("/{id}/pdf")
     @Operation(summary = "Download PDF", description = "Downloads the PDF file for a book")
-    public ResponseEntity<Resource> downloadPdf(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<Resource> downloadPdf(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
         BookResponse book = bookService.getBookById(id);
         
         // Check access: public book or owner
-        if (authentication != null) {
-            UserEntity user = (UserEntity) authentication.getPrincipal();
+        if (user != null) {
             if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
@@ -129,12 +133,15 @@ public class BookController {
     
     @PatchMapping("/{id}/visibility")
     @Operation(summary = "Update book visibility", description = "Updates the public/private visibility of a book")
-    public ResponseEntity<BookResponse> updateBookVisibility(
+    public ResponseEntity<?> updateBookVisibility(
             @PathVariable Long id,
             @RequestBody Map<String, Boolean> request,
-            Authentication authentication) {
+            @AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Authentication required");
+        }
         try {
-            UserEntity user = (UserEntity) authentication.getPrincipal();
             Boolean isPublic = request.get("isPublic");
             if (isPublic == null) {
                 return ResponseEntity.badRequest().build();
@@ -170,12 +177,11 @@ public class BookController {
     
     @GetMapping("/{id}/status")
     @Operation(summary = "Check PDF status", description = "Checks if PDF is ready for download")
-    public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
         BookResponse book = bookService.getBookById(id);
         
         // Check access: public book or owner
-        if (authentication != null) {
-            UserEntity user = (UserEntity) authentication.getPrincipal();
+        if (user != null) {
             if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }

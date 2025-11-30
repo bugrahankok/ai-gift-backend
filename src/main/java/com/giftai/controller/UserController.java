@@ -6,8 +6,9 @@ import com.giftai.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,8 +22,11 @@ public class UserController {
     
     @GetMapping("/profile")
     @Operation(summary = "Get user profile", description = "Retrieves the authenticated user's profile with their books")
-    public ResponseEntity<UserProfileResponse> getUserProfile(Authentication authentication) {
-        UserEntity user = (UserEntity) authentication.getPrincipal();
+    public ResponseEntity<?> getUserProfile(@AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Authentication required");
+        }
         UserProfileResponse profile = userService.getUserProfile(user.getId());
         return ResponseEntity.ok(profile);
     }

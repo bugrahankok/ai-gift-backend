@@ -47,6 +47,7 @@ public class UserService {
                 .bookId(entity.getId())
                 .name(entity.getName())
                 .age(entity.getAge())
+                .gender(entity.getGender())
                 .theme(entity.getTheme())
                 .tone(entity.getTone())
                 .giver(entity.getGiver())

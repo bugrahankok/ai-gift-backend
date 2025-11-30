@@ -45,10 +45,21 @@ public class BookProvider {
                 );
             }
             
+            String genderInfo = "";
+            if (request.getGender() != null && !request.getGender().trim().isEmpty()) {
+                genderInfo = String.format(
+                    "\nRecipient's Gender: %s\n" +
+                    "- Use appropriate pronouns (he/him for Boy, she/her for Girl, they/them for Other)\n" +
+                    "- Make the story gender-appropriate and inclusive\n",
+                    request.getGender()
+                );
+            }
+            
             String prompt = String.format(
                 "Create a personalized children's book as a gift. Write a complete, engaging, LONG story with the following details:\n\n" +
                 "Recipient's Name: %s\n" +
                 "Recipient's Age: %d years old\n" +
+                "%s" +
                 "Theme: %s\n" +
                 "Tone: %s\n" +
                 "Gift Giver: %s\n" +
@@ -65,6 +76,7 @@ public class BookProvider {
                 "- Format with clear chapter headings (Chapter 1, Chapter 2, etc.)",
                 request.getName(),
                 request.getAge(),
+                genderInfo,
                 request.getTheme(),
                 request.getTone(),
                 request.getGiver(),

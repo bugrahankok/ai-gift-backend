@@ -48,9 +48,68 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="age" class="form-label">Age</label>
-                            <input type="number" id="age" name="age" class="form-input" 
-                                   placeholder="Enter age" min="1" max="120" required>
+                            <label class="form-label">Age Range</label>
+                            <div class="option-grid" id="age-options">
+                                <div class="option-card" data-value="0">
+                                    <div class="option-icon">👶</div>
+                                    <div class="option-label">0-5 years</div>
+                                </div>
+                                <div class="option-card" data-value="6">
+                                    <div class="option-icon">🧒</div>
+                                    <div class="option-label">6-12 years</div>
+                                </div>
+                                <div class="option-card" data-value="13">
+                                    <div class="option-icon">👦</div>
+                                    <div class="option-label">13-18 years</div>
+                                </div>
+                                <div class="option-card" data-value="19">
+                                    <div class="option-icon">👨</div>
+                                    <div class="option-label">19-30 years</div>
+                                </div>
+                                <div class="option-card" data-value="31">
+                                    <div class="option-icon">👩</div>
+                                    <div class="option-label">31-50 years</div>
+                                </div>
+                                <div class="option-card" data-value="50">
+                                    <div class="option-icon">👴</div>
+                                    <div class="option-label">50+ years</div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="age" name="age" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Gender (Optional)</label>
+                            <div class="gender-options">
+                                <label class="gender-option">
+                                    <input type="radio" name="gender" value="Boy" id="gender-boy">
+                                    <div class="gender-card">
+                                        <div class="gender-icon">👦</div>
+                                        <div class="gender-label">Boy</div>
+                                    </div>
+                                </label>
+                                <label class="gender-option">
+                                    <input type="radio" name="gender" value="Girl" id="gender-girl">
+                                    <div class="gender-card">
+                                        <div class="gender-icon">👧</div>
+                                        <div class="gender-label">Girl</div>
+                                    </div>
+                                </label>
+                                <label class="gender-option">
+                                    <input type="radio" name="gender" value="Other" id="gender-other">
+                                    <div class="gender-card">
+                                        <div class="gender-icon">🌈</div>
+                                        <div class="gender-label">Other</div>
+                                    </div>
+                                </label>
+                                <label class="gender-option">
+                                    <input type="radio" name="gender" value="" id="gender-none" checked>
+                                    <div class="gender-card">
+                                        <div class="gender-icon">✨</div>
+                                        <div class="gender-label">Prefer not to say</div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="form-group">
