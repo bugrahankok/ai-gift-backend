@@ -40,6 +40,9 @@ public class BookEntity {
     @Column(length = 500)
     private String appearance;
     
+    @Column(columnDefinition = "TEXT")
+    private String characters; // JSON string of List<CharacterInfo>
+    
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
     

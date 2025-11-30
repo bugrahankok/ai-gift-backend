@@ -1,8 +1,11 @@
 package com.giftai.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.giftai.entity.BookEntity;
 import com.giftai.entity.UserEntity;
 import com.giftai.model.BookResponse;
+import com.giftai.model.CharacterInfo;
 import com.giftai.model.UserProfileResponse;
 import com.giftai.repository.BookRepository;
 import com.giftai.repository.UserRepository;
@@ -11,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,6 +47,17 @@ public class UserService {
     }
     
     private BookResponse toBookResponse(BookEntity entity) {
+        // Deserialize characters from JSON
+        List<CharacterInfo> characters = new ArrayList<>();
+        if (entity.getCharacters() != null && !entity.getCharacters().trim().isEmpty()) {
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                characters = objectMapper.readValue(entity.getCharacters(), new TypeReference<List<CharacterInfo>>() {});
+            } catch (Exception e) {
+                log.error("Error deserializing characters: {}", e.getMessage());
+            }
+        }
+        
         return BookResponse.builder()
                 .bookId(entity.getId())
                 .name(entity.getName())
@@ -52,6 +67,7 @@ public class UserService {
                 .tone(entity.getTone())
                 .giver(entity.getGiver())
                 .appearance(entity.getAppearance())
+                .characters(characters.isEmpty() ? null : characters)
                 .content(entity.getContent())
                 .pdfPath(entity.getPdfPath())
                 .pdfReady(entity.getPdfReady())

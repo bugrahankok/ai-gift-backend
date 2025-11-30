@@ -1,6 +1,7 @@
 package com.giftai.provider;
 
 import com.giftai.model.BookRequest;
+import com.giftai.model.CharacterInfo;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
@@ -55,6 +56,28 @@ public class BookProvider {
                 );
             }
             
+            String charactersInfo = "";
+            if (request.getCharacters() != null && !request.getCharacters().isEmpty()) {
+                StringBuilder charsBuilder = new StringBuilder("\nCharacters in the Story:\n");
+                for (CharacterInfo character : request.getCharacters()) {
+                    charsBuilder.append(String.format(
+                        "- %s (%s):\n" +
+                        "  Appearance: %s\n" +
+                        "  Description: %s\n" +
+                        "  - Include this character naturally throughout the story\n" +
+                        "  - Make them an integral part of the narrative\n" +
+                        "  - Use their appearance and description to create vivid scenes\n",
+                        character.getName(),
+                        character.getType(),
+                        character.getAppearance() != null && !character.getAppearance().trim().isEmpty() 
+                            ? character.getAppearance() : "Not specified",
+                        character.getDescription() != null && !character.getDescription().trim().isEmpty() 
+                            ? character.getDescription() : "Not specified"
+                    ));
+                }
+                charactersInfo = charsBuilder.toString();
+            }
+            
             String prompt = String.format(
                 "Create a personalized children's book as a gift. Write a complete, engaging, LONG story with the following details:\n\n" +
                 "Recipient's Name: %s\n" +
@@ -63,6 +86,7 @@ public class BookProvider {
                 "Theme: %s\n" +
                 "Tone: %s\n" +
                 "Gift Giver: %s\n" +
+                "%s" +
                 "%s" +
                 "\nRequirements:\n" +
                 "- Write a full-length story (6000-8000 words)\n" +
@@ -80,7 +104,8 @@ public class BookProvider {
                 request.getTheme(),
                 request.getTone(),
                 request.getGiver(),
-                appearanceDescription
+                appearanceDescription,
+                charactersInfo
             );
             
             List<ChatMessage> messages = new ArrayList<>();

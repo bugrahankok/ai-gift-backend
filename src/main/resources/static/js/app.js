@@ -57,6 +57,12 @@ function initializeForm() {
     setupOptionCards('theme-options', 'theme');
     setupOptionCards('type-options', 'book-type');
     setupOptionCards('tone-options', 'tone');
+    
+    // Initialize character management
+    initializeCharacters();
+    
+    // Initialize character management
+    initializeCharacters();
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -73,6 +79,9 @@ function initializeForm() {
         // Age value is already the starting age of the range (e.g., 3 for 3-5 years)
         const age = ageValue ? parseInt(ageValue) : null;
         
+        // Collect characters
+        const characters = collectCharacters();
+        
         const bookData = {
             name: formData.get('name'),
             age: age,
@@ -81,6 +90,7 @@ function initializeForm() {
             tone: formData.get('tone'),
             giver: formData.get('giver'),
             appearance: formData.get('appearance') || '',
+            characters: characters.length > 0 ? characters : null,
             isPublic: visibility === 'public'
         };
         
@@ -1037,4 +1047,131 @@ async function toggleBookVisibility(bookId, isPublic) {
         // Reload history to revert the toggle
         loadHistory();
     }
+}
+
+// Character Management Functions
+let characterCount = 0;
+
+function initializeCharacters() {
+    const addBtn = document.getElementById('add-character-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', addCharacter);
+    }
+}
+
+function addCharacter() {
+    if (characterCount >= 3) {
+        showToast('Maximum 3 characters allowed', 'error');
+        return;
+    }
+    
+    characterCount++;
+    const container = document.getElementById('characters-container');
+    const characterIndex = characterCount;
+    
+    const characterCard = document.createElement('div');
+    characterCard.className = 'character-card';
+    characterCard.id = `character-${characterIndex}`;
+    characterCard.innerHTML = `
+        <div class="character-header">
+            <div class="character-title">Character ${characterIndex}</div>
+            <button type="button" class="character-remove-btn" onclick="removeCharacter(${characterIndex})">Remove</button>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label class="form-label">Character Type</label>
+            <div class="character-type-options">
+                <label class="character-type-option">
+                    <input type="radio" name="character-type-${characterIndex}" value="Human" checked>
+                    <div class="character-type-card">
+                        <div class="character-type-icon">👤</div>
+                        <div class="character-type-label">Human</div>
+                    </div>
+                </label>
+                <label class="character-type-option">
+                    <input type="radio" name="character-type-${characterIndex}" value="Animal">
+                    <div class="character-type-card">
+                        <div class="character-type-icon">🐾</div>
+                        <div class="character-type-label">Animal</div>
+                    </div>
+                </label>
+                <label class="character-type-option">
+                    <input type="radio" name="character-type-${characterIndex}" value="Object">
+                    <div class="character-type-card">
+                        <div class="character-type-icon">📦</div>
+                        <div class="character-type-label">Object</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label class="form-label">Character Name</label>
+            <input type="text" class="form-input character-name" 
+                   placeholder="Enter character name" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label class="form-label">Appearance</label>
+            <textarea class="form-textarea character-appearance" rows="2" 
+                      placeholder="e.g., Brown hair, blue eyes, tall, friendly smile..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-textarea character-description" rows="2" 
+                      placeholder="e.g., A brave and kind friend who loves adventures..."></textarea>
+        </div>
+    `;
+    
+    container.appendChild(characterCard);
+    updateAddButtonState();
+}
+
+function removeCharacter(index) {
+    const characterCard = document.getElementById(`character-${index}`);
+    if (characterCard) {
+        characterCard.remove();
+        characterCount--;
+        updateAddButtonState();
+    }
+}
+
+function updateAddButtonState() {
+    const addBtn = document.getElementById('add-character-btn');
+    if (addBtn) {
+        if (characterCount >= 3) {
+            addBtn.disabled = true;
+            addBtn.style.opacity = '0.5';
+            addBtn.style.cursor = 'not-allowed';
+        } else {
+            addBtn.disabled = false;
+            addBtn.style.opacity = '1';
+            addBtn.style.cursor = 'pointer';
+        }
+    }
+}
+
+function collectCharacters() {
+    const characters = [];
+    const characterCards = document.querySelectorAll('.character-card');
+    
+    characterCards.forEach((card) => {
+        const name = card.querySelector('.character-name')?.value?.trim();
+        const appearance = card.querySelector('.character-appearance')?.value?.trim();
+        const description = card.querySelector('.character-description')?.value?.trim();
+        const typeInput = card.querySelector('input[type="radio"]:checked');
+        const type = typeInput ? typeInput.value : 'Human';
+        
+        if (name) {
+            characters.push({
+                name: name,
+                appearance: appearance || '',
+                description: description || '',
+                type: type
+            });
+        }
+    });
+    
+    return characters;
 }

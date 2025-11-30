@@ -176,6 +176,23 @@ public class DatabaseMigration {
                 log.info("✅ 'gender' column already exists in books table");
             }
             
+            // Check if characters column exists in books table
+            String checkCharactersColumnSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name = 'books' AND column_name = 'characters'
+                """;
+            
+            Integer charactersColumnExists = jdbcTemplate.queryForObject(checkCharactersColumnSql, Integer.class);
+            
+            if (charactersColumnExists == null || charactersColumnExists == 0) {
+                log.info("Adding missing 'characters' column to books table...");
+                jdbcTemplate.execute("ALTER TABLE books ADD COLUMN IF NOT EXISTS characters TEXT");
+                log.info("✅ Successfully added 'characters' column to books table");
+            } else {
+                log.info("✅ 'characters' column already exists in books table");
+            }
+            
             log.info("Database migration completed successfully");
             
         } catch (Exception e) {

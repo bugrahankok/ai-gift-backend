@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,6 +34,8 @@ public class BookRequest {
     private String giver;
     
     private String appearance;
+    
+    private List<CharacterInfo> characters;
     
     private Boolean isPublic;
 }

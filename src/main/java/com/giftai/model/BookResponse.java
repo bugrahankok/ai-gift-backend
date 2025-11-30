@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -20,6 +21,7 @@ public class BookResponse {
     private String tone;
     private String giver;
     private String appearance;
+    private List<CharacterInfo> characters;
     private String content;
     private String pdfPath;
     private Boolean pdfReady;

@@ -1,9 +1,12 @@
 package com.giftai.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.giftai.entity.BookEntity;
 import com.giftai.entity.UserEntity;
 import com.giftai.model.BookRequest;
 import com.giftai.model.BookResponse;
+import com.giftai.model.CharacterInfo;
 import com.giftai.provider.BookProvider;
 import com.giftai.repository.BookRepository;
 import com.giftai.repository.UserRepository;
@@ -13,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +29,7 @@ public class BookService {
     private final UserRepository userRepository;
     private final BookProvider bookProvider;
     private final PdfGenerationService pdfGenerationService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Transactional
     public BookResponse generateBook(BookRequest request, Long userId) {
@@ -35,6 +40,16 @@ public class BookService {
         
         String content = bookProvider.generateBook(request);
         
+        // Serialize characters to JSON
+        String charactersJson = null;
+        if (request.getCharacters() != null && !request.getCharacters().isEmpty()) {
+            try {
+                charactersJson = objectMapper.writeValueAsString(request.getCharacters());
+            } catch (Exception e) {
+                log.error("Error serializing characters: {}", e.getMessage());
+            }
+        }
+        
         BookEntity entity = BookEntity.builder()
                 .name(request.getName())
                 .age(request.getAge())
@@ -43,6 +58,7 @@ public class BookService {
                 .tone(request.getTone())
                 .giver(request.getGiver())
                 .appearance(request.getAppearance())
+                .characters(charactersJson)
                 .content(content)
                 .pdfReady(false)
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
@@ -129,6 +145,16 @@ public class BookService {
     }
     
     private BookResponse toResponse(BookEntity entity) {
+        // Deserialize characters from JSON
+        List<CharacterInfo> characters = new ArrayList<>();
+        if (entity.getCharacters() != null && !entity.getCharacters().trim().isEmpty()) {
+            try {
+                characters = objectMapper.readValue(entity.getCharacters(), new TypeReference<List<CharacterInfo>>() {});
+            } catch (Exception e) {
+                log.error("Error deserializing characters: {}", e.getMessage());
+            }
+        }
+        
         return BookResponse.builder()
                 .bookId(entity.getId())
                 .name(entity.getName())
@@ -138,6 +164,7 @@ public class BookService {
                 .tone(entity.getTone())
                 .giver(entity.getGiver())
                 .appearance(entity.getAppearance())
+                .characters(characters.isEmpty() ? null : characters)
                 .content(entity.getContent())
                 .pdfPath(entity.getPdfPath())
                 .pdfReady(entity.getPdfReady())
