@@ -66,7 +66,14 @@ public class JwtTokenProvider {
                     .build()
                     .parseSignedClaims(token);
             return true;
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.err.println("Token expired: " + e.getMessage());
+            return false;
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            System.err.println("Token signature invalid: " + e.getMessage());
+            return false;
         } catch (Exception e) {
+            System.err.println("Token validation error: " + e.getMessage());
             return false;
         }
     }

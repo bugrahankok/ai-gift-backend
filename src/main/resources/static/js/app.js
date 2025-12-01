@@ -13,21 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLogout();
     updateHeader();
     
-    // Check if URL has book parameter for direct sharing
+    // Check if URL has book parameter for direct sharing - redirect to book details page
     const urlParams = new URLSearchParams(window.location.search);
     const bookId = urlParams.get('book');
     if (bookId) {
-        // Switch to create tab and load the book when page loads
-        setTimeout(() => {
-            // Switch to create tab to show the book
-            const createTab = document.querySelector('.tab-btn[data-tab="create"]');
-            if (createTab) {
-                createTab.click();
-            }
-            setTimeout(() => {
-                viewBookDetails(bookId);
-            }, 300);
-        }, 500);
+        window.location.href = `/book-details.html?id=${bookId}`;
     }
 });
 
@@ -160,26 +150,16 @@ function initializeForm() {
             currentBookId = result.bookId;
             
             // Hide animation and show success message
-            updateGeneratingMessage('🎉 Your book is ready!', 'Opening your book in a new window...');
+            updateGeneratingMessage('🎉 Kitabınız hazır!', 'Kitabınıza yönlendiriliyorsunuz...');
             
-            // Wait a moment then open in new page
+            // Wait a moment then redirect to book details page
             setTimeout(() => {
                 hideGeneratingAnimation();
                 form.reset();
                 
-                // Open book in new page
-                const bookUrl = `/?book=${result.bookId}`;
-                window.open(bookUrl, '_blank');
-                
-                showToast('Book created successfully! Opening in new window...', 'success');
-                
-                // Refresh discover page if book is public
-                setTimeout(() => {
-                    loadHistory();
-                    if (result.isPublic) {
-                        loadDiscover();
-                    }
-                }, 1000);
+                // Redirect to book details page (same window)
+                const bookUrl = `/book-details.html?id=${result.bookId}`;
+                window.location.href = bookUrl;
             }, 2000);
         } catch (error) {
             console.error('Error details:', error);
@@ -625,106 +605,13 @@ function displayDiscoverBooks(books) {
 }
 
 async function viewPublicBook(id) {
-    try {
-        const headers = isAuthenticated() ? getAuthHeaders() : { 'Content-Type': 'application/json' };
-        const response = await fetch(`${API_BASE_URL}/${id}`, {
-            headers: headers
-        });
-        
-        if (!response.ok) {
-            if (response.status === 403) {
-                showToast('This book is private', 'error');
-                return;
-            }
-            throw new Error('Failed to load book details');
-        }
-
-        const book = await response.json();
-        
-        if (!book.isPublic) {
-            showToast('This book is private', 'error');
-            return;
-        }
-        
-        currentBookId = book.bookId;
-        displayResult(book);
-        
-        // Update share bar with stats (displayResult already does this, but ensure it's visible)
-        const shareBar = document.getElementById('share-bar');
-        if (shareBar) shareBar.style.display = 'block';
-        
-        if (book.pdfReady) {
-            showPdfControls(book);
-        } else {
-            showPdfLoading();
-            startPdfStatusCheck(book.bookId);
-        }
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            if (btn.getAttribute('data-tab') === 'create') {
-                btn.click();
-            }
-        });
-        
-        showToast('Book displayed', 'success');
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Failed to load book details', 'error');
-    }
+    // Redirect to book details page
+    window.location.href = `/book-details.html?id=${id}`;
 }
 
 async function viewBookDetails(id) {
-    try {
-        const headers = isAuthenticated() ? getAuthHeaders() : { 'Content-Type': 'application/json' };
-        const response = await fetch(`${API_BASE_URL}/${id}`, {
-            headers: headers
-        });
-        if (!response.ok) {
-            if (response.status === 403) {
-                showToast('Access denied', 'error');
-                return;
-            }
-            throw new Error('Failed to load book details');
-        }
-
-        const book = await response.json();
-        currentBookId = book.bookId;
-        displayResult(book);
-        
-        // Update share bar with stats
-        if (book.viewCount !== undefined) {
-            const viewCountEl = document.getElementById('view-count');
-            if (viewCountEl) viewCountEl.textContent = book.viewCount || 0;
-        }
-        if (book.downloadCount !== undefined) {
-            const downloadCountEl = document.getElementById('download-count');
-            if (downloadCountEl) downloadCountEl.textContent = book.downloadCount || 0;
-        }
-        
-        // Store for sharing
-        window.currentBookId = book.bookId;
-        window.currentBookName = book.name;
-        const shareBar = document.getElementById('share-bar');
-        if (shareBar) shareBar.style.display = 'block';
-        
-        if (book.pdfReady) {
-            showPdfControls(book);
-        } else {
-            showPdfLoading();
-            startPdfStatusCheck(book.bookId);
-        }
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            if (btn.getAttribute('data-tab') === 'create') {
-                btn.click();
-            }
-        });
-        
-        showToast('Book details displayed', 'success');
-    } catch (error) {
-        console.error('Error:', error);
-        showToast('Failed to load book details', 'error');
-    }
+    // Redirect to book details page
+    window.location.href = `/book-details.html?id=${id}`;
 }
 
 function showToast(message, type = 'success') {
@@ -1249,36 +1136,107 @@ function collectCharacters() {
     return characters;
 }
 
+// Global functions for loading popup
+function showLoading() {
+    const popup = document.getElementById('book-generating-modal');
+    
+    if (!popup) {
+        console.error('Loading popup element not found!');
+        return;
+    }
+    
+    // Show popup with flex display
+    popup.style.display = 'flex';
+    popup.classList.add('show');
+    
+    // Scroll to popup smoothly
+    popup.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+    });
+}
+
+function hideLoading() {
+    const popup = document.getElementById('book-generating-modal');
+    
+    if (popup) {
+        popup.classList.remove('show');
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 300);
+    }
+}
+
 function showGeneratingAnimation() {
-    const modal = document.getElementById('book-generating-modal');
+    showLoading();
+    
     const message = document.getElementById('generating-message');
     const submessage = document.getElementById('generating-submessage');
     const animation = document.getElementById('generating-animation');
     
-    modal.style.display = 'flex';
-    
-    // Messages to cycle through
+    // Sweet and sympathetic messages to cycle through (English)
     const messages = [
-        { main: '✨ Your book is being written...', sub: 'Our AI is crafting your personalized story', icon: '✍️' },
-        { main: '🎨 Adding beautiful illustrations...', sub: 'Making your book visually stunning', icon: '🎨' },
-        { main: '📚 Organizing chapters...', sub: 'Structuring your story perfectly', icon: '📚' },
-        { main: '✨ Adding magical touches...', sub: 'Making every page special', icon: '✨' },
-        { main: '🌟 Finalizing your book...', sub: 'Almost ready!', icon: '🌟' }
+        { main: '✨ Creating your book...', sub: 'Your story is being crafted with care', icon: '✍️' },
+        { main: '🎨 Adding beautiful pages...', sub: 'Every detail is carefully crafted', icon: '🎨' },
+        { main: '📖 Organizing chapters...', sub: 'Your story is taking shape', icon: '📖' },
+        { main: '💫 Adding special touches...', sub: 'Making every page unique', icon: '💫' },
+        { main: '🌟 Finalizing your book...', sub: 'Your book is almost ready!', icon: '🌟' },
+        { main: '📚 Combining pages...', sub: 'Everything is coming together', icon: '📚' },
+        { main: '🎁 Adding special surprises...', sub: 'Adding details that make it special', icon: '🎁' },
+        { main: '✨ Final checks...', sub: 'Everything must be perfect!', icon: '✨' },
+        { main: '💝 Adding personal messages...', sub: 'Making your book even more special', icon: '💝' },
+        { main: '🎀 Designing the cover...', sub: 'Making your book beautiful', icon: '🎀' }
     ];
     
     let messageIndex = 0;
     
+    // Animate dots in "Lütfen bekleyin"
+    const dotsElement = document.getElementById('dots');
+    let dotCount = 0;
+    const dotsInterval = setInterval(() => {
+        if (dotsElement) {
+            dotCount = (dotCount % 3) + 1;
+            dotsElement.textContent = '.'.repeat(dotCount);
+        }
+    }, 500);
+    window.generatingDotsInterval = dotsInterval;
+    
     const messageInterval = setInterval(() => {
         if (messageIndex < messages.length) {
             const msg = messages[messageIndex];
-            message.textContent = msg.main;
-            submessage.textContent = msg.sub;
-            animation.textContent = msg.icon;
+            if (message) {
+                message.style.opacity = '0';
+                message.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    message.textContent = msg.main;
+                    message.style.opacity = '1';
+                    message.style.transform = 'translateY(0)';
+                }, 200);
+            }
+            if (submessage) {
+                submessage.style.opacity = '0';
+                submessage.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    submessage.textContent = msg.sub;
+                    submessage.style.opacity = '1';
+                    submessage.style.transform = 'translateY(0)';
+                }, 250);
+            }
+            if (animation) {
+                animation.style.transform = 'scale(0.7) rotate(-10deg)';
+                animation.style.opacity = '0.5';
+                setTimeout(() => {
+                    animation.textContent = msg.icon;
+                    animation.style.transform = 'scale(1) rotate(0deg)';
+                    animation.style.opacity = '1';
+                }, 150);
+            }
             messageIndex++;
         } else {
-            clearInterval(messageInterval);
+            // Loop back to start for longer generation times
+            messageIndex = 0;
         }
-    }, 3000);
+    }, 2800); // Slightly longer for better readability
     
     // Store interval to clear it later
     window.generatingMessageInterval = messageInterval;
@@ -1295,15 +1253,18 @@ function updateGeneratingMessage(main, sub) {
 }
 
 function hideGeneratingAnimation() {
-    const modal = document.getElementById('book-generating-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    hideLoading();
     
     // Clear message interval if exists
     if (window.generatingMessageInterval) {
         clearInterval(window.generatingMessageInterval);
         window.generatingMessageInterval = null;
+    }
+    
+    // Clear dots interval if exists
+    if (window.generatingDotsInterval) {
+        clearInterval(window.generatingDotsInterval);
+        window.generatingDotsInterval = null;
     }
 }
 

@@ -376,16 +376,18 @@
                     </form>
                 </div>
 
-                <!-- Loading Animation Modal -->
-                <div id="book-generating-modal" class="modal" style="display: none;">
-                    <div class="modal-content" style="max-width: 500px; text-align: center;">
-                        <div class="modal-body" style="padding: 40px;">
-                            <div id="generating-animation" style="font-size: 4rem; margin-bottom: 20px; animation: bounce 1s infinite;">📖</div>
-                            <h2 id="generating-message" style="color: var(--primary-color); margin-bottom: 15px;">✨ Your book is being written...</h2>
-                            <p id="generating-submessage" style="color: var(--text-secondary); font-size: 1.1rem;">Please wait while we create your personalized story</p>
-                            <div class="loading-spinner" style="margin-top: 30px;">
-                                <div class="spinner"></div>
-                            </div>
+                <!-- Loading Animation Modal - Fixed Center Popup with Local Blur -->
+                <div id="book-generating-modal" class="loading-popup">
+                    <div class="loading-popup-blur"></div>
+                    <div class="loading-popup-content">
+                        <div id="generating-animation" class="loading-emoji">📖</div>
+                        <h2 id="generating-message" class="loading-title">✨ Creating your book...</h2>
+                        <p id="generating-submessage" class="loading-subtitle">Your story is being crafted with care</p>
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                        </div>
+                        <div class="loading-waiting">
+                            <span id="waiting-text">Please wait<span id="dots">...</span></span>
                         </div>
                     </div>
                 </div>

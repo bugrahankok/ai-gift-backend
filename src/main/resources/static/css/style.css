@@ -959,10 +959,12 @@ body {
 }
 
 .consent-modal.active {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .consent-modal-content {
@@ -1864,19 +1866,314 @@ body.consent-blocked .container {
     display: inline-block;
 }
 
-/* Modal overlay for generating animation */
-#book-generating-modal {
+/* Loading Popup - Fixed center position */
+.loading-popup {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    z-index: 10000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99999;
+    display: none;
+    opacity: 0;
+    pointer-events: auto;
+    animation: fadeInPopup 0.4s ease forwards;
+}
+
+.loading-popup.show {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    opacity: 1;
+}
+
+@keyframes fadeInPopup {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Blur effect ONLY around the popup - circular/box area behind it */
+.loading-popup-blur {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 120%;
+    min-width: 600px;
+    min-height: 400px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 50px;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.loading-popup.show .loading-popup-blur {
+    opacity: 1;
+}
+
+/* Loading Popup Content */
+.loading-popup-content {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(252, 231, 243, 0.98) 50%, rgba(255, 240, 245, 0.95) 100%);
+    border-radius: 32px;
+    padding: 50px 45px;
+    text-align: center;
+    min-width: 480px;
+    max-width: 580px;
+    width: auto;
+    box-shadow: 0 30px 80px rgba(167, 139, 250, 0.6), 0 0 50px rgba(255, 182, 193, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.5);
+    border: 3px solid rgba(167, 139, 250, 0.5);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.loading-popup-content::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+    animation: shimmer 3s infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.loading-emoji {
+    font-size: 5.5rem;
+    margin-bottom: 30px;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    animation: gentleBounce 1.5s ease-in-out infinite, emojiGlow 2s ease-in-out infinite;
+    filter: drop-shadow(0 8px 16px rgba(167, 139, 250, 0.6));
+}
+
+.loading-title {
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-shadow: 0 2px 4px rgba(167, 139, 250, 0.2);
+    position: relative;
+    z-index: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.loading-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    opacity: 0.9;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.loading-waiting {
+    margin-top: 30px;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    opacity: 0.75;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .loading-popup-content {
+        min-width: 90%;
+        max-width: 90%;
+        padding: 40px 30px;
+    }
+    
+    .loading-popup-blur {
+        min-width: 500px;
+        min-height: 350px;
+        border-radius: 40px;
+    }
+    
+    .loading-emoji {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+    
+    .loading-title {
+        font-size: 1.5rem;
+    }
+    
+    .loading-subtitle {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-popup-content {
+        min-width: 95%;
+        max-width: 95%;
+        padding: 35px 25px;
+        border-radius: 24px;
+    }
+    
+    .loading-popup-blur {
+        min-width: 400px;
+        min-height: 300px;
+        border-radius: 30px;
+    }
+    
+    .loading-emoji {
+        font-size: 3.5rem;
+    }
+    
+    .loading-title {
+        font-size: 1.3rem;
+    }
+}
+
+@keyframes popupAppear {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7) rotate(-5deg);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.05) rotate(2deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+}
+
+#book-generating-modal::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.3) 50%, transparent 70%);
+    animation: shimmer 3s infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* Remove old show class styles - now handled by overlay */
+
+@keyframes gentlePulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.02); }
+}
+
+#book-generating-modal * {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Overlay fade in animation */
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#generating-animation {
+    font-size: 5.5rem;
+    margin-bottom: 30px;
+    animation: gentleBounce 1.5s ease-in-out infinite, emojiGlow 2s ease-in-out infinite;
+    display: inline-block;
+    filter: drop-shadow(0 8px 16px rgba(167, 139, 250, 0.6));
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    transform-origin: center;
+    text-shadow: 0 0 20px rgba(167, 139, 250, 0.4);
+}
+
+@keyframes emojiGlow {
+    0%, 100% { 
+        filter: drop-shadow(0 8px 16px rgba(167, 139, 250, 0.6));
+        transform: scale(1);
+    }
+    50% { 
+        filter: drop-shadow(0 8px 20px rgba(255, 182, 193, 0.8));
+        transform: scale(1.05);
+    }
+}
+
+@keyframes gentleBounce {
+    0%, 100% { 
+        transform: translateY(0) scale(1) rotate(0deg); 
+    }
+    25% { 
+        transform: translateY(-8px) scale(1.05) rotate(-2deg); 
+    }
+    50% { 
+        transform: translateY(-12px) scale(1.08) rotate(0deg); 
+    }
+    75% { 
+        transform: translateY(-8px) scale(1.05) rotate(2deg); 
+    }
+}
+
+#generating-message {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-shadow: 0 2px 8px rgba(167, 139, 250, 0.3);
+}
+
+#generating-submessage {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0.9;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* Loading spinner styles */
+.loading-spinner {
+    position: relative;
+    display: inline-block;
+    margin-top: 30px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(167, 139, 250, 0.2);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 15px rgba(167, 139, 250, 0.3);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Dots animation for "Lütfen bekleyin" */
+@keyframes dots {
+    0%, 20% { content: 'Lütfen bekleyin'; }
+    40% { content: 'Lütfen bekleyin.'; }
+    60% { content: 'Lütfen bekleyin..'; }
+    80%, 100% { content: 'Lütfen bekleyin...'; }
 }
 
 #book-generating-modal .modal-content {

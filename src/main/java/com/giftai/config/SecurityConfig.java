@@ -37,11 +37,13 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/profile.html", "/css/**", "/js/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/api/book/discover", "/api/book/{id}", "/api/book/{id}/pdf", "/api/book/{id}/status").permitAll()
+                .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/profile.html", "/book-details.html", "/css/**", "/js/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/api/book/discover").permitAll()
+                // Note: /api/book/{id} is permitAll but access control is handled in controller
+                // JWT filter will still run to set authentication if token is present
                 .requestMatchers("/api/book/generate", "/api/book/history", "/api/book/{id}/visibility").authenticated()
                 .requestMatchers("/api/user/**").authenticated()
-                .requestMatchers("/api/book/**").permitAll()
+                .requestMatchers("/api/book/**").permitAll() // Allow all book endpoints, access control in controller
                 .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

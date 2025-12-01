@@ -29,6 +29,7 @@ public class BookResponse {
     private Boolean pdfReady;
     private Boolean isPublic;
     private String authorName;
+    private Long authorId;
     private Long viewCount;
     private Long downloadCount;
     private LocalDateTime createdAt;

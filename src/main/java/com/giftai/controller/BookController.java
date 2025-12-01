@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ import java.util.Map;
 @RequestMapping("/api/book")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@Slf4j
 @Tag(name = "Book API", description = "API for generating personalized e-books")
 public class BookController {
     
@@ -67,26 +69,103 @@ public class BookController {
     
     @GetMapping("/{id}")
     @Operation(summary = "Get book by ID", description = "Retrieves a specific book by its ID")
-    public ResponseEntity<BookResponse> getBookById(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
+    public ResponseEntity<BookResponse> getBookById(@PathVariable Long id, Authentication authentication) {
+        // First get the book to check its properties
         BookResponse book = bookService.getBookById(id);
         
-        // Check if book is public or belongs to authenticated user
-        if (user != null) {
-            if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        // Get user ID from authentication - try multiple methods
+        Long userId = null;
+        
+        // Method 1: From Authentication parameter
+        if (authentication != null) {
+            Object principal = authentication.getPrincipal();
+            log.debug("Authentication principal type: {}", principal != null ? principal.getClass().getName() : "null");
+            if (principal instanceof UserEntity) {
+                userId = ((UserEntity) principal).getId();
+                log.info("✅ Got userId {} from Authentication parameter", userId);
+            } else {
+                log.warn("Principal is not UserEntity, type: {}, value: {}", 
+                        principal != null ? principal.getClass().getName() : "null", principal);
             }
         } else {
-            // If not authenticated, only allow public books
-            if (!book.getIsPublic()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            log.warn("Authentication parameter is null");
+        }
+        
+        // Method 2: From SecurityContext
+        if (userId == null) {
+            Authentication secAuth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (secAuth != null) {
+                Object secPrincipal = secAuth.getPrincipal();
+                log.debug("SecurityContext principal type: {}", secPrincipal != null ? secPrincipal.getClass().getName() : "null");
+                if (secPrincipal instanceof UserEntity) {
+                    userId = ((UserEntity) secPrincipal).getId();
+                    log.info("✅ Got userId {} from SecurityContext", userId);
+                } else {
+                    log.warn("SecurityContext principal is not UserEntity, type: {}", 
+                            secPrincipal != null ? secPrincipal.getClass().getName() : "null");
+                }
+            } else {
+                log.warn("SecurityContext authentication is null");
             }
+        }
+        
+        // Method 3: Try to extract from token manually if still null
+        if (userId == null) {
+            log.warn("⚠️ Could not extract userId from authentication. Checking if token is being sent...");
+            // This will be logged by JwtAuthenticationFilter
+        }
+        
+        // Detailed debug logging
+        log.info("Book access check - Book ID: {}, IsPublic: {}, AuthorId: {}, UserId: {}, Auth present: {}", 
+                id, book.getIsPublic(), book.getAuthorId(), 
+                userId != null ? userId : "null",
+                authentication != null);
+        
+        // Check if book is public or belongs to authenticated user
+        if (!book.getIsPublic()) {
+            // Book is private - check if user is the owner
+            if (userId == null) {
+                log.warn("❌ Access denied: Private book {} accessed without authentication (userId is null)", id);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .header("X-Error-Reason", "Authentication required for private books")
+                        .build();
+            }
+            
+            // Check if user is the owner by comparing authorId with userId
+            if (book.getAuthorId() == null) {
+                log.error("❌ CRITICAL: AuthorId is null for book {} - this should not happen!", id);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .header("X-Error-Reason", "Book authorId is null")
+                        .build();
+            }
+            
+            // CRITICAL: Compare user ID with author ID - if they match, allow access
+            // Use .equals() for proper Long comparison
+            boolean idsMatch = book.getAuthorId().equals(userId);
+            
+            log.info("🔍 ID comparison for private book {} - UserId: {} (type: {}), AuthorId: {} (type: {}), Match: {}", 
+                    id, userId, userId.getClass().getSimpleName(), 
+                    book.getAuthorId(), book.getAuthorId().getClass().getSimpleName(), idsMatch);
+            
+            if (!idsMatch) {
+                log.warn("❌ Access denied: User {} tried to access book {} owned by {} (IDs don't match)", 
+                        userId, id, book.getAuthorId());
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .header("X-Error-Reason", "User ID does not match book author ID")
+                        .build();
+            }
+            
+            log.info("✅ Access granted: User {} (ID matches authorId {}) can access private book {}", 
+                    userId, book.getAuthorId(), id);
+        } else {
+            log.info("✅ Access granted: Book {} is public, anyone can access", id);
         }
         
         // Increment view count (async, don't wait for it)
         try {
             bookService.incrementViewCount(id);
         } catch (Exception e) {
-            // Log but don't fail the request
+            log.error("Failed to increment view count", e);
         }
         
         return ResponseEntity.ok(book);
@@ -95,19 +174,20 @@ public class BookController {
     @GetMapping("/{id}/pdf")
     @Operation(summary = "Download PDF", description = "Downloads the PDF file for a book")
     public ResponseEntity<Resource> downloadPdf(@PathVariable Long id, Authentication authentication) {
-        UserEntity user = null;
-        if (authentication != null && authentication.getPrincipal() instanceof UserEntity) {
-            user = (UserEntity) authentication.getPrincipal();
-        }
         BookResponse book = bookService.getBookById(id);
         
-        // Check access: public book or owner
-        if (user != null) {
-            if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
+        // Get user ID from authentication
+        Long userId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof UserEntity) {
+            userId = ((UserEntity) authentication.getPrincipal()).getId();
+        }
+        
+        // Check access: public book or owner (user ID must match author ID)
+        if (!book.getIsPublic()) {
+            if (userId == null) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-        } else {
-            if (!book.getIsPublic()) {
+            if (book.getAuthorId() == null || !book.getAuthorId().equals(userId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
@@ -182,19 +262,25 @@ public class BookController {
     
     @GetMapping("/{id}/status")
     @Operation(summary = "Check PDF status", description = "Checks if PDF is ready for download")
-    public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
+    public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id, Authentication authentication) {
         BookResponse book = bookService.getBookById(id);
         
-        // Check access: public book or owner
-        if (user != null) {
-            if (!book.getIsPublic() && (book.getAuthorName() == null || !book.getAuthorName().equals(user.getName()))) {
+        // Get user ID from authentication
+        Long userId = null;
+        if (authentication != null && authentication.getPrincipal() instanceof UserEntity) {
+            userId = ((UserEntity) authentication.getPrincipal()).getId();
+        }
+        
+        // Check access: public book or owner (user ID must match author ID)
+        if (!book.getIsPublic()) {
+            if (userId == null) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
-        } else {
-            if (!book.getIsPublic()) {
+            if (book.getAuthorId() == null || !book.getAuthorId().equals(userId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
+        
         return ResponseEntity.ok(Map.of(
             "pdfReady", book.getPdfReady(),
             "pdfPath", book.getPdfPath() != null ? book.getPdfPath() : ""

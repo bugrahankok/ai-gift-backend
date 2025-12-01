@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtTokenProvider tokenProvider;
@@ -28,15 +30,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         String token = getTokenFromRequest(request);
         
-        if (token != null && tokenProvider.validateToken(token)) {
-            String email = tokenProvider.getEmailFromToken(token);
-            
-            userRepository.findByEmail(email).ifPresent(user -> {
-                UsernamePasswordAuthenticationToken authentication = 
-                    new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            });
+        if (token != null) {
+            log.info("🔑 Token found in request for path: {}", request.getRequestURI());
+            try {
+                if (tokenProvider.validateToken(token)) {
+                    String email = tokenProvider.getEmailFromToken(token);
+                    log.info("✅ Token validated, email extracted: {}", email);
+                    
+                    userRepository.findByEmail(email).ifPresentOrElse(
+                        user -> {
+                            log.info("✅ User found and authenticated: {} (ID: {})", email, user.getId());
+                            UsernamePasswordAuthenticationToken authentication = 
+                                new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+                            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                            log.info("✅ Authentication set in SecurityContext for user ID: {} on path: {}", 
+                                    user.getId(), request.getRequestURI());
+                        },
+                        () -> {
+                            log.warn("⚠️ User not found for email: {} from token", email);
+                        }
+                    );
+                } else {
+                    log.warn("❌ Token validation failed for path: {} - token may be expired or invalid", request.getRequestURI());
+                }
+            } catch (Exception e) {
+                log.error("❌ Error processing token for path: {}", request.getRequestURI(), e);
+            }
+        } else {
+            log.debug("No token found in request for path: {} - Authorization header: {}", 
+                    request.getRequestURI(), request.getHeader("Authorization"));
         }
         
         filterChain.doFilter(request, response);

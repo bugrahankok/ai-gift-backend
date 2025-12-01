@@ -35,8 +35,11 @@ public class BookService {
     public BookResponse generateBook(BookRequest request, Long userId) {
         log.info("Generating book for: {} by {} for user: {}", request.getName(), request.getGiver(), userId);
         
+        // CRITICAL: Load user entity to ensure it's available for authorId
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
+        log.info("User loaded - ID: {}, Email: {}, Name: {}", user.getId(), user.getEmail(), user.getName());
         
         String content = bookProvider.generateBook(request);
         
@@ -64,16 +67,54 @@ public class BookService {
                 .content(content)
                 .pdfReady(false)
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
-                .user(user)
+                .user(user) // CRITICAL: Set user entity - this will be used for authorId
                 .build();
         
         entity = bookRepository.save(entity);
-        log.info("Book saved with ID: {} for user: {}", entity.getId(), userId);
+        
+        // Verify user is set correctly
+        if (entity.getUser() == null) {
+            log.error("CRITICAL ERROR: User is null after save for book ID: {}", entity.getId());
+        } else {
+            log.info("✅ Book saved with ID: {} for user: {} (authorId will be: {})", 
+                    entity.getId(), userId, entity.getUser().getId());
+        }
         
         pdfGenerationService.generatePdfAsync(entity.getId(), content, request.getName(), 
                 request.getLanguage() != null ? request.getLanguage() : "English");
         
-        return toResponse(entity);
+        BookResponse response = toResponse(entity);
+        
+        // Double-check authorId is set
+        if (response.getAuthorId() == null) {
+            log.error("CRITICAL ERROR: AuthorId is null in response for book ID: {}", entity.getId());
+            // Rebuild response with authorId
+            response = BookResponse.builder()
+                    .bookId(response.getBookId())
+                    .name(response.getName())
+                    .age(response.getAge())
+                    .gender(response.getGender())
+                    .language(response.getLanguage())
+                    .theme(response.getTheme())
+                    .mainTopic(response.getMainTopic())
+                    .tone(response.getTone())
+                    .giver(response.getGiver())
+                    .appearance(response.getAppearance())
+                    .characters(response.getCharacters())
+                    .content(response.getContent())
+                    .pdfPath(response.getPdfPath())
+                    .pdfReady(response.getPdfReady())
+                    .isPublic(response.getIsPublic())
+                    .authorName(user.getName())
+                    .authorId(user.getId()) // CRITICAL: Set authorId from user
+                    .viewCount(response.getViewCount())
+                    .downloadCount(response.getDownloadCount())
+                    .createdAt(response.getCreatedAt())
+                    .build();
+            log.info("✅ AuthorId manually set to: {} for book ID: {}", user.getId(), entity.getId());
+        }
+        
+        return response;
     }
     
     public List<BookResponse> getUserBooks(Long userId) {
@@ -88,7 +129,49 @@ public class BookService {
         BookEntity entity = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
         
-        return toResponse(entity);
+        // Force load user to avoid lazy loading issues
+        if (entity.getUser() != null) {
+            Long userId = entity.getUser().getId();
+            log.debug("Book {} belongs to user {}", id, userId);
+        } else {
+            log.warn("Book {} has no user assigned!", id);
+        }
+        
+        BookResponse response = toResponse(entity);
+        
+        // Ensure authorId is set correctly - CRITICAL for access control
+        if (response.getAuthorId() == null) {
+            if (entity.getUser() != null) {
+                log.warn("AuthorId was null for book {}, setting it from entity user {}", id, entity.getUser().getId());
+                response = BookResponse.builder()
+                        .bookId(response.getBookId())
+                        .name(response.getName())
+                        .age(response.getAge())
+                        .gender(response.getGender())
+                        .language(response.getLanguage())
+                        .theme(response.getTheme())
+                        .mainTopic(response.getMainTopic())
+                        .tone(response.getTone())
+                        .giver(response.getGiver())
+                        .appearance(response.getAppearance())
+                        .characters(response.getCharacters())
+                        .content(response.getContent())
+                        .pdfPath(response.getPdfPath())
+                        .pdfReady(response.getPdfReady())
+                        .isPublic(response.getIsPublic())
+                        .authorName(response.getAuthorName())
+                        .authorId(entity.getUser().getId())
+                        .viewCount(response.getViewCount())
+                        .downloadCount(response.getDownloadCount())
+                        .createdAt(response.getCreatedAt())
+                        .build();
+            } else {
+                log.error("CRITICAL: Book {} has no user and no authorId!", id);
+            }
+        }
+        
+        log.debug("Book {} response - AuthorId: {}, IsPublic: {}", id, response.getAuthorId(), response.getIsPublic());
+        return response;
     }
     
     public BookResponse getBookById(Long id, Long userId) {
@@ -158,6 +241,18 @@ public class BookService {
             }
         }
         
+        // CRITICAL: Get authorId from user entity
+        Long authorId = null;
+        String authorName = null;
+        
+        if (entity.getUser() != null) {
+            authorId = entity.getUser().getId();
+            authorName = entity.getUser().getName();
+            log.debug("Book {} - AuthorId: {}, AuthorName: {}", entity.getId(), authorId, authorName);
+        } else {
+            log.warn("⚠️ Book {} has no user entity! AuthorId will be null!", entity.getId());
+        }
+        
         return BookResponse.builder()
                 .bookId(entity.getId())
                 .name(entity.getName())
@@ -174,7 +269,8 @@ public class BookService {
                 .pdfPath(entity.getPdfPath())
                 .pdfReady(entity.getPdfReady())
                 .isPublic(entity.getIsPublic())
-                .authorName(entity.getUser() != null ? entity.getUser().getName() : null)
+                .authorName(authorName)
+                .authorId(authorId) // CRITICAL: This must be set for access control
                 .viewCount(entity.getViewCount() != null ? entity.getViewCount() : 0L)
                 .downloadCount(entity.getDownloadCount() != null ? entity.getDownloadCount() : 0L)
                 .createdAt(entity.getCreatedAt())
