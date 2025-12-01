@@ -27,6 +27,82 @@
     box-sizing: border-box;
 }
 
+/* Announcement Bar */
+.announcement-bar {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.announcement-bar.hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.announcement-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.announcement-icon {
+    font-size: 1.1rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.announcement-text {
+    text-align: center;
+}
+
+.announcement-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    line-height: 1;
+    padding: 0;
+}
+
+.announcement-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.announcement-close:active {
+    transform: scale(0.95);
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     background: linear-gradient(135deg, #f0f4f8 0%, #e0e7ff 20%, #f3e8ff 40%, #fce7f3 60%, #f0f9ff 80%, #f0f4f8 100%);
@@ -56,6 +132,21 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+}
+
+/* Smooth scrolling for better reading experience */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Better text rendering for reading */
+.result-content,
+.story-paragraph,
+.chapter-heading,
+.section-heading {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 .header {
@@ -472,6 +563,9 @@ body {
     font-family: 'Georgia', 'Times New Roman', serif;
     line-height: 1.9;
     color: #2c3e50;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .gift-item {
@@ -628,6 +722,25 @@ body {
 }
 
 @media (max-width: 768px) {
+    .announcement-bar {
+        padding: 8px 15px;
+    }
+    
+    .announcement-content {
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    
+    .announcement-icon {
+        font-size: 1rem;
+    }
+    
+    .announcement-close {
+        width: 24px;
+        height: 24px;
+        font-size: 1.3rem;
+    }
+    
     .container {
         padding: 10px;
     }
@@ -684,9 +797,65 @@ body {
         left: 10px;
         max-width: none;
     }
+    
+    /* Enhanced reading experience for tablets and small screens */
+    .result-content {
+        padding: 30px 24px;
+        margin: 15px 0;
+        line-height: 1.85;
+    }
+    
+    .story-paragraph {
+        font-size: 1.05rem;
+        line-height: 1.85;
+        margin-bottom: 22px;
+    }
+    
+    .chapter-heading {
+        font-size: 1.6rem;
+        margin: 32px 0 22px 0;
+    }
+    
+    /* Better spacing for book content */
+    #book-content-text {
+        padding-bottom: 20px;
+    }
+    
+    /* Improve share bar on mobile */
+    .share-bar {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .share-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 480px) {
+    .announcement-bar {
+        padding: 8px 12px;
+    }
+    
+    .announcement-content {
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+    
+    .announcement-text {
+        flex: 1;
+        text-align: left;
+    }
+    
+    .announcement-close {
+        width: 22px;
+        height: 22px;
+        font-size: 1.2rem;
+        margin-left: 8px;
+    }
+    
     .logo {
         font-size: 2rem;
     }
@@ -713,6 +882,81 @@ body {
     .btn {
         padding: 12px 24px;
         font-size: 0.95rem;
+    }
+    
+    /* Enhanced mobile reading experience */
+    .result-content {
+        padding: 20px 16px;
+        margin: 10px 0;
+        border-radius: 14px;
+        line-height: 1.8;
+    }
+    
+    .chapter-heading {
+        font-size: 1.35rem;
+        margin: 30px 0 20px 0;
+        padding-bottom: 10px;
+        line-height: 1.3;
+        text-align: center;
+    }
+    
+    .section-heading {
+        font-size: 1.1rem;
+        margin: 24px 0 16px 0;
+        line-height: 1.4;
+    }
+    
+    .story-paragraph {
+        font-size: 1rem;
+        line-height: 1.8;
+        text-indent: 1.2em;
+        margin-bottom: 20px;
+        text-align: left;
+        padding: 0 4px;
+    }
+    
+    .story-paragraph:first-of-type {
+        text-indent: 0;
+        font-size: 1.05rem;
+        margin-top: 10px;
+    }
+    
+    .story-paragraph:first-of-type::first-letter {
+        font-size: 2.5em;
+        line-height: 0.7;
+        margin-right: 4px;
+        margin-top: 2px;
+    }
+    
+    /* Better spacing for long content */
+    .main-content {
+        padding: 15px 10px;
+    }
+    
+    .card {
+        padding: 18px 14px;
+        border-radius: 16px;
+    }
+    
+    /* Improve touch targets */
+    .btn {
+        min-height: 44px;
+        padding: 12px 20px;
+    }
+    
+    /* Better container spacing */
+    .container {
+        padding: 10px 8px;
+    }
+    
+    /* Optimize header for mobile */
+    .header {
+        padding: 20px 10px;
+        margin-bottom: 20px;
+    }
+    
+    .header-content {
+        padding: 25px 20px;
     }
 }
 
@@ -1990,6 +2234,9 @@ body.consent-blocked .container {
     font-family: 'Georgia', 'Times New Roman', serif;
     line-height: 1.9;
     color: #2c3e50;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .chapter-heading {
@@ -2002,6 +2249,9 @@ body.consent-blocked .container {
     border-bottom: 3px solid rgba(167, 139, 250, 0.3);
     font-family: 'Georgia', serif;
     letter-spacing: 1px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
 }
 
 .section-heading {
@@ -2012,18 +2262,24 @@ body.consent-blocked .container {
     margin: 30px 0 20px 0;
     font-style: italic;
     font-family: 'Georgia', serif;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
 }
 
 .story-paragraph {
     font-size: 1.1rem;
     line-height: 1.9;
-    margin-bottom: 18px;
+    margin-bottom: 24px;
     text-align: justify;
     text-indent: 2em;
     color: #2c3e50;
     font-family: 'Georgia', 'Times New Roman', serif;
     hyphens: auto;
     word-spacing: 0.1em;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 
 .story-paragraph:first-of-type {
@@ -2046,26 +2302,44 @@ body.consent-blocked .container {
     .result-content {
         padding: 25px 20px;
         margin: 15px 0;
+        border-radius: 16px;
+        max-width: 100%;
     }
     
     .chapter-heading {
-        font-size: 1.6rem;
-        margin: 30px 0 20px 0;
+        font-size: 1.5rem;
+        margin: 35px 0 25px 0;
+        padding-bottom: 12px;
+        line-height: 1.4;
+        word-wrap: break-word;
     }
     
     .section-heading {
-        font-size: 1.2rem;
-        margin: 25px 0 15px 0;
+        font-size: 1.15rem;
+        margin: 28px 0 18px 0;
+        line-height: 1.5;
+        word-wrap: break-word;
     }
     
     .story-paragraph {
-        font-size: 1rem;
-        line-height: 1.7;
+        font-size: 1.05rem;
+        line-height: 1.85;
         text-indent: 1.5em;
+        margin-bottom: 22px;
+        text-align: left;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .story-paragraph:first-of-type {
+        text-indent: 0;
+        font-size: 1.1rem;
     }
     
     .story-paragraph:first-of-type::first-letter {
-        font-size: 2.5em;
+        font-size: 2.8em;
+        line-height: 0.75;
+        margin-right: 6px;
     }
 }
 

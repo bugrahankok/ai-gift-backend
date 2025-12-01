@@ -236,15 +236,41 @@
         isAuthenticated: isAuthenticated
     };
 
+    /**
+     * Setup announcement bar
+     * Handles showing/hiding the announcement bar based on user preference
+     */
+    function setupAnnouncementBar() {
+        const announcementBar = document.getElementById('announcement-bar');
+        const closeBtn = document.getElementById('announcement-close');
+        
+        if (!announcementBar || !closeBtn) return;
+        
+        // Check if user has dismissed the announcement
+        const dismissed = localStorage.getItem('bookifyai-announcement-dismissed');
+        if (dismissed === 'true') {
+            announcementBar.classList.add('hidden');
+            return;
+        }
+        
+        // Close button functionality
+        closeBtn.addEventListener('click', () => {
+            announcementBar.classList.add('hidden');
+            localStorage.setItem('bookifyai-announcement-dismissed', 'true');
+        });
+    }
+
     // Auto-initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initNavigation();
             setupLogoutHandler();
+            setupAnnouncementBar();
         });
     } else {
         initNavigation();
         setupLogoutHandler();
+        setupAnnouncementBar();
     }
 
 })();
