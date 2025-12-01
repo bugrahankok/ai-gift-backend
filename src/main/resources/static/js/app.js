@@ -501,7 +501,7 @@ function displayHistory(books) {
                 ${hasMore ? `<button class="btn btn-secondary" style="margin-top: 10px; width: 100%;" onclick="toggleContent(${book.bookId}, ${JSON.stringify(book.content)})">Show More</button>` : ''}
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
                     ${book.pdfReady ? `<button onclick="downloadBookPdf(${book.bookId})" class="btn btn-primary" style="flex: 1;">📥 Download PDF</button>` : '<p style="flex: 1; color: var(--text-secondary); text-align: center; padding: 10px;">⏳ PDF is being generated...</p>'}
-                    <button onclick="deleteBook(${book.bookId}, event)" class="btn btn-danger" style="flex: 0 0 auto; min-width: 100px;">🗑️ Delete</button>
+                    <button onclick="deleteBookFromHistory(${book.bookId}, event)" class="btn btn-danger" style="flex: 0 0 auto; min-width: 100px;">🗑️ Delete</button>
                 </div>
             </div>
         `;
@@ -1007,6 +1007,38 @@ async function toggleBookVisibility(bookId, isPublic) {
         showToast('Failed to update book visibility', 'error');
         // Reload history to revert the toggle
         loadHistory();
+    }
+}
+
+async function deleteBookFromHistory(bookId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    if (!confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/${bookId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || error.error || 'Failed to delete book');
+        }
+        
+        showToast('Book deleted successfully', 'success');
+        
+        // Reload history and discover to refresh the lists
+        loadHistory();
+        loadDiscover();
+    } catch (error) {
+        console.error('Error:', error);
+        const errorMessage = error.message || 'Failed to delete book';
+        showToast(errorMessage, 'error');
     }
 }
 
