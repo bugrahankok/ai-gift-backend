@@ -18,7 +18,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     checkAuth();
+    // Navigation is handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.update();
+        window.Navigation.setupLogout();
+    }
 });
+
+function updateHeader() {
+    // Navigation is now handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.update();
+    }
+}
 
 async function handleLogin(e) {
     e.preventDefault();
@@ -56,6 +68,11 @@ async function handleLogin(e) {
 
         document.cookie = `authToken=${data.token}; path=/; max-age=86400; SameSite=Lax`;
 
+        // Update navigation immediately to reflect login
+        if (window.Navigation) {
+            window.Navigation.update();
+        }
+        
         showToast('Login successful!', 'success');
         setTimeout(() => {
             window.location.href = '/';
@@ -111,6 +128,11 @@ async function handleRegister(e) {
 
         document.cookie = `authToken=${data.token}; path=/; max-age=86400; SameSite=Lax`;
 
+        // Update navigation immediately to reflect registration/login
+        if (window.Navigation) {
+            window.Navigation.update();
+        }
+        
         showToast('Registration successful!', 'success');
         setTimeout(() => {
             window.location.href = '/';
@@ -130,6 +152,10 @@ function handleLogout() {
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
     document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    
+    // Update header immediately to reflect logout
+    updateHeader();
+    
     showToast('Logged out successfully', 'success');
     setTimeout(() => {
         window.location.href = '/';

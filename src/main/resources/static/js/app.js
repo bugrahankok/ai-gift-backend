@@ -10,8 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadHistory();
     loadDiscover();
     initializeModals();
-    setupLogout();
-    updateHeader();
+    // Navigation is handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.update();
+        window.Navigation.setupLogout();
+    }
     
     // Check if URL has book parameter for direct sharing - redirect to book details page
     const urlParams = new URLSearchParams(window.location.search);
@@ -496,14 +499,24 @@ function displayHistory(books) {
                     ${escapeHtml(contentPreview)}${hasMore ? '...' : ''}
                 </div>
                 ${hasMore ? `<button class="btn btn-secondary" style="margin-top: 10px; width: 100%;" onclick="toggleContent(${book.bookId}, ${JSON.stringify(book.content)})">Show More</button>` : ''}
-                ${book.pdfReady ? `<button onclick="downloadBookPdf(${book.bookId})" class="btn btn-primary" style="margin-top: 10px; width: 100%;">📥 Download PDF</button>` : '<p style="margin-top: 10px; color: var(--text-secondary);">⏳ PDF is being generated...</p>'}
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    ${book.pdfReady ? `<button onclick="downloadBookPdf(${book.bookId})" class="btn btn-primary" style="flex: 1;">📥 Download PDF</button>` : '<p style="flex: 1; color: var(--text-secondary); text-align: center; padding: 10px;">⏳ PDF is being generated...</p>'}
+                    <button onclick="deleteBook(${book.bookId}, event)" class="btn btn-danger" style="flex: 0 0 auto; min-width: 100px;">🗑️ Delete</button>
+                </div>
             </div>
         `;
     }).join('');
 
-    document.querySelectorAll('.gift-item').forEach(item => {
+    document.querySelectorAll('#history-content .gift-item').forEach(item => {
         item.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+            // Don't trigger if clicking on buttons, inputs, labels, or links
+            if (e.target.tagName !== 'BUTTON' && 
+                e.target.tagName !== 'A' && 
+                e.target.tagName !== 'INPUT' &&
+                e.target.tagName !== 'LABEL' &&
+                !e.target.closest('button') &&
+                !e.target.closest('a') &&
+                !e.target.closest('label')) {
                 const id = item.getAttribute('data-id');
                 viewBookDetails(id);
             }
@@ -596,7 +609,11 @@ function displayDiscoverBooks(books) {
 
     document.querySelectorAll('#discover-content .gift-item').forEach(item => {
         item.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'BUTTON') {
+            // Don't trigger if clicking on buttons or links
+            if (e.target.tagName !== 'BUTTON' && 
+                e.target.tagName !== 'A' &&
+                !e.target.closest('button') &&
+                !e.target.closest('a')) {
                 const id = item.getAttribute('data-id');
                 viewPublicBook(id);
             }
@@ -870,32 +887,16 @@ function handleAuthError() {
 }
 
 function updateHeader() {
-    const headerActions = document.getElementById('header-actions');
-    const headerLogin = document.getElementById('header-login');
-    
-    if (isAuthenticated()) {
-        if (headerActions) headerActions.style.display = 'flex';
-        if (headerLogin) headerLogin.style.display = 'none';
-    } else {
-        if (headerActions) headerActions.style.display = 'none';
-        if (headerLogin) headerLogin.style.display = 'flex';
+    // Navigation is now handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.update();
     }
 }
 
 function setupLogout() {
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('userName');
-            localStorage.removeItem('userId');
-            document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            showToast('Logged out successfully', 'success');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1000);
-        });
+    // Logout is now handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.setupLogout();
     }
 }
 

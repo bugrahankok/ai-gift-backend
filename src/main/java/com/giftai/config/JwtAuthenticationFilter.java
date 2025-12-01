@@ -25,41 +25,60 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String requestPath = request.getRequestURI();
+        
+        // Only process API endpoints - skip everything else
+        if (!requestPath.startsWith("/api/")) {
+            return true; // Skip filter
+        }
+        
+        // Skip auth endpoints (they don't need JWT validation)
+        if (requestPath.startsWith("/api/auth/")) {
+            return true;
+        }
+        
+        return false; // Process this request
+    }
+    
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
+        String requestPath = request.getRequestURI();
         String token = getTokenFromRequest(request);
         
         if (token != null) {
-            log.info("🔑 Token found in request for path: {}", request.getRequestURI());
+            log.trace("🔑 Token found in request for path: {}", requestPath);
             try {
                 if (tokenProvider.validateToken(token)) {
                     String email = tokenProvider.getEmailFromToken(token);
-                    log.info("✅ Token validated, email extracted: {}", email);
+                    log.debug("✅ Token validated, email extracted: {}", email);
                     
                     userRepository.findByEmail(email).ifPresentOrElse(
                         user -> {
-                            log.info("✅ User found and authenticated: {} (ID: {})", email, user.getId());
+                            log.debug("✅ User found and authenticated: {} (ID: {})", email, user.getId());
                             UsernamePasswordAuthenticationToken authentication = 
                                 new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
                             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                             SecurityContextHolder.getContext().setAuthentication(authentication);
-                            log.info("✅ Authentication set in SecurityContext for user ID: {} on path: {}", 
-                                    user.getId(), request.getRequestURI());
+                            log.trace("✅ Authentication set in SecurityContext for user ID: {} on path: {}", 
+                                    user.getId(), requestPath);
                         },
                         () -> {
-                            log.warn("⚠️ User not found for email: {} from token", email);
+                            log.debug("⚠️ User not found for email: {} from token", email);
                         }
                     );
                 } else {
-                    log.warn("❌ Token validation failed for path: {} - token may be expired or invalid", request.getRequestURI());
+                    // Invalid token - silently ignore (user might not be logged in)
+                    log.trace("Token validation failed for path: {} - token may be expired or invalid", requestPath);
                 }
             } catch (Exception e) {
-                log.error("❌ Error processing token for path: {}", request.getRequestURI(), e);
+                // Silently handle token validation errors - don't log as error for invalid tokens
+                log.trace("Token processing error for path: {} - {}", requestPath, e.getMessage());
             }
         } else {
-            log.debug("No token found in request for path: {} - Authorization header: {}", 
-                    request.getRequestURI(), request.getHeader("Authorization"));
+            log.trace("No token found in request for path: {}", requestPath);
         }
         
         filterChain.doFilter(request, response);

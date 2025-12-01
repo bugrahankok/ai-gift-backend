@@ -9,8 +9,11 @@ let totalPages = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
-    updateHeader();
-    setupLogout();
+    // Navigation is handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.update();
+        window.Navigation.setupLogout();
+    }
     
     // Get book ID from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -25,21 +28,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function checkAuth() {
     const token = localStorage.getItem('authToken');
-    if (token) {
-        const headerActions = document.getElementById('header-actions');
-        const headerLogin = document.getElementById('header-login');
-        if (headerActions) headerActions.style.display = 'flex';
-        if (headerLogin) headerLogin.style.display = 'none';
-    } else {
-        const headerActions = document.getElementById('header-actions');
-        const headerLogin = document.getElementById('header-login');
-        if (headerActions) headerActions.style.display = 'none';
-        if (headerLogin) headerLogin.style.display = 'flex';
-    }
+    return !!token;
 }
 
 function updateHeader() {
-    checkAuth();
+    // Navigation is now handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.update();
+    }
+}
+
+function setupLogout() {
+    // Logout is now handled by nav.js
+    if (window.Navigation) {
+        window.Navigation.setupLogout();
+    }
 }
 
 function setupLogout() {

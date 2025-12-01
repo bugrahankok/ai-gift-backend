@@ -230,6 +230,29 @@ public class BookService {
         bookRepository.save(entity);
     }
     
+    @Transactional
+    public void deleteBook(Long id) {
+        log.info("Deleting book with ID: {}", id);
+        BookEntity entity = bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+        
+        // Delete PDF file if it exists
+        if (entity.getPdfPath() != null && !entity.getPdfPath().isEmpty()) {
+            try {
+                java.io.File pdfFile = new java.io.File(entity.getPdfPath());
+                if (pdfFile.exists()) {
+                    pdfFile.delete();
+                    log.info("Deleted PDF file: {}", entity.getPdfPath());
+                }
+            } catch (Exception e) {
+                log.warn("Could not delete PDF file: {}", e.getMessage());
+            }
+        }
+        
+        bookRepository.delete(entity);
+        log.info("Book {} deleted successfully", id);
+    }
+    
     private BookResponse toResponse(BookEntity entity) {
         // Deserialize characters from JSON
         List<CharacterInfo> characters = new ArrayList<>();

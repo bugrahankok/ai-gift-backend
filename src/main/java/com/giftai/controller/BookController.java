@@ -260,6 +260,31 @@ public class BookController {
         }
     }
     
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a book", description = "Deletes a book. Only the book owner can delete their own books.")
+    public ResponseEntity<?> deleteBook(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication required", "message", "Please login to delete books"));
+        }
+        try {
+            BookResponse book = bookService.getBookById(id);
+            
+            // Check if user owns the book
+            if (book.getAuthorId() == null || !book.getAuthorId().equals(user.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Access denied", "message", "You can only delete your own books"));
+            }
+            
+            bookService.deleteBook(id);
+            return ResponseEntity.ok(Map.of("message", "Book deleted successfully"));
+        } catch (Exception e) {
+            log.error("Error deleting book with ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage(), "message", "An error occurred while deleting the book"));
+        }
+    }
+    
     @GetMapping("/{id}/status")
     @Operation(summary = "Check PDF status", description = "Checks if PDF is ready for download")
     public ResponseEntity<Map<String, Object>> checkPdfStatus(@PathVariable Long id, Authentication authentication) {

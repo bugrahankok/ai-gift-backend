@@ -3,6 +3,7 @@ package com.giftai.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtTokenProvider {
     
     @Value("${jwt.secret:}")
@@ -67,13 +69,13 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token);
             return true;
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
-            System.err.println("Token expired: " + e.getMessage());
+            log.trace("Token expired: {}", e.getMessage());
             return false;
         } catch (io.jsonwebtoken.security.SignatureException e) {
-            System.err.println("Token signature invalid: " + e.getMessage());
+            log.trace("Token signature invalid: {}", e.getMessage());
             return false;
         } catch (Exception e) {
-            System.err.println("Token validation error: " + e.getMessage());
+            log.trace("Token validation error: {}", e.getMessage());
             return false;
         }
     }

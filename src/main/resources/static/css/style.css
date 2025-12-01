@@ -320,6 +320,21 @@ body {
     background: var(--border-color);
 }
 
+.btn-danger {
+    background: rgba(248, 113, 113, 0.1);
+    color: var(--error-color);
+    border: 2px solid rgba(248, 113, 113, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background: var(--error-color);
+    color: white;
+    border-color: var(--error-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.4);
+}
+
 .result-card {
     margin-top: 30px;
     animation: slideUp 0.4s ease;
@@ -1219,6 +1234,57 @@ body.consent-blocked .container {
     font-size: 0.9rem;
 }
 
+/* Navigation Bar Styles - Always Visible */
+.header-nav {
+    display: flex !important;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.nav-link {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(167, 139, 250, 0.3);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nav-link:hover {
+    background: rgba(167, 139, 250, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(167, 139, 250, 0.2);
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
+}
+
+.nav-link.nav-btn {
+    background: rgba(244, 114, 182, 0.1);
+    border-color: rgba(244, 114, 182, 0.3);
+    color: var(--text-primary);
+}
+
+.nav-link.nav-btn:hover {
+    background: rgba(244, 114, 182, 0.2);
+    border-color: var(--secondary-color);
+}
+
 .login-required {
     background: rgba(244, 114, 182, 0.1);
     border: 1px solid rgba(244, 114, 182, 0.3);
@@ -1302,6 +1368,16 @@ body.consent-blocked .container {
 
     .header-actions .btn {
         flex: 1;
+    }
+    
+    .header-nav {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .nav-link {
+        width: 100%;
+        justify-content: center;
     }
 
     .profile-header {
@@ -1897,7 +1973,7 @@ body.consent-blocked .container {
 
 /* Blur effect ONLY around the popup - circular/box area behind it */
 .loading-popup-blur {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -1906,9 +1982,9 @@ body.consent-blocked .container {
     min-width: 600px;
     min-height: 400px;
     background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 150px;
     z-index: -1;
     pointer-events: none;
     opacity: 0;
