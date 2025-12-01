@@ -331,6 +331,7 @@
     /**
      * Setup announcement bar
      * Handles showing/hiding the announcement bar based on user preference
+     * Note: Actual content is loaded by announcements.js
      */
     function setupAnnouncementBar() {
         const announcementBar = document.getElementById('announcement-bar');
@@ -342,7 +343,6 @@
         const dismissed = localStorage.getItem('bookifyai-announcement-dismissed');
         if (dismissed === 'true') {
             announcementBar.classList.add('hidden');
-            return;
         }
         
         // Close button functionality

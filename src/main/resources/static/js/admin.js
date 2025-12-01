@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadStatistics();
     loadUsers();
     loadBooks();
+    loadAnnouncements();
 });
 
 function checkAdminAccess() {
@@ -827,5 +828,265 @@ function closeEditUserModal() {
 
 function closeEditBookModal() {
     document.getElementById('edit-book-modal').style.display = 'none';
+}
+
+// Announcement management functions
+async function loadAnnouncements() {
+    try {
+        console.log('Loading announcements...');
+        const response = await fetch(`${API_BASE_URL}/announcements`, {
+            headers: window.Utils ? window.Utils.getAuthHeaders() : {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || 'Failed to load announcements');
+        }
+        
+        const announcements = await response.json();
+        console.log('Announcements loaded:', announcements.length);
+        
+        displayAnnouncements(announcements);
+    } catch (error) {
+        console.error('Error loading announcements:', error);
+        if (window.Utils) {
+            window.Utils.logError('Error loading announcements:', error);
+        }
+    }
+}
+
+function displayAnnouncements(announcements) {
+    const barAnnouncements = announcements.filter(a => a.type === 'bar');
+    const popupAnnouncements = announcements.filter(a => a.type === 'popup');
+    
+    // Display bar announcements
+    const barContent = document.getElementById('announcement-bar-content');
+    if (barContent) {
+        if (barAnnouncements.length === 0) {
+            barContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📢</div>
+                    <div class="empty-state-text">No announcement bar configured</div>
+                    <button class="btn btn-primary" onclick="showCreateAnnouncementModal('bar')" style="margin-top: 20px;">Create Announcement Bar</button>
+                </div>
+            `;
+        } else {
+            barContent.innerHTML = `
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Icon</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${barAnnouncements.map(ann => `
+                                <tr>
+                                    <td>${ann.icon || '📢'}</td>
+                                    <td>${escapeHtml(ann.message)}</td>
+                                    <td>${ann.isActive ? '✅ Active' : '❌ Inactive'}</td>
+                                    <td>${ann.updatedAt ? new Date(ann.updatedAt).toLocaleString() : 'N/A'}</td>
+                                    <td>
+                                        <button class="btn btn-secondary" onclick="editAnnouncement(${ann.id}, '${ann.type}', '${escapeHtml(ann.message)}', '${ann.icon || ''}', ${ann.isActive})" style="padding: 6px 12px; font-size: 0.85rem; margin-right: 5px;">✏️ Edit</button>
+                                        <button class="btn btn-secondary" onclick="toggleAnnouncement(${ann.id})" style="padding: 6px 12px; font-size: 0.85rem; margin-right: 5px;">${ann.isActive ? '⏸️ Deactivate' : '▶️ Activate'}</button>
+                                        <button class="btn btn-danger" onclick="deleteAnnouncement(${ann.id})" style="padding: 6px 12px; font-size: 0.85rem;">🗑️ Delete</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }
+    
+    // Display popup announcements
+    const popupContent = document.getElementById('announcement-popup-content');
+    if (popupContent) {
+        if (popupAnnouncements.length === 0) {
+            popupContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <div class="empty-state-text">No popup announcements configured</div>
+                    <button class="btn btn-primary" onclick="showCreateAnnouncementModal('popup')" style="margin-top: 20px;">Create Popup Announcement</button>
+                </div>
+            `;
+        } else {
+            popupContent.innerHTML = `
+                <div class="admin-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Icon</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${popupAnnouncements.map(ann => `
+                                <tr>
+                                    <td>${ann.icon || '💬'}</td>
+                                    <td>${escapeHtml(ann.message)}</td>
+                                    <td>${ann.isActive ? '✅ Active' : '❌ Inactive'}</td>
+                                    <td>${ann.updatedAt ? new Date(ann.updatedAt).toLocaleString() : 'N/A'}</td>
+                                    <td>
+                                        <button class="btn btn-secondary" onclick="editAnnouncement(${ann.id}, '${ann.type}', '${escapeHtml(ann.message)}', '${ann.icon || ''}', ${ann.isActive})" style="padding: 6px 12px; font-size: 0.85rem; margin-right: 5px;">✏️ Edit</button>
+                                        <button class="btn btn-secondary" onclick="toggleAnnouncement(${ann.id})" style="padding: 6px 12px; font-size: 0.85rem; margin-right: 5px;">${ann.isActive ? '⏸️ Deactivate' : '▶️ Activate'}</button>
+                                        <button class="btn btn-danger" onclick="deleteAnnouncement(${ann.id})" style="padding: 6px 12px; font-size: 0.85rem;">🗑️ Delete</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }
+}
+
+function showCreateAnnouncementModal(type = null) {
+    document.getElementById('announcement-id').value = '';
+    document.getElementById('announcement-type').value = type || 'bar';
+    document.getElementById('announcement-icon').value = type === 'popup' ? '💬' : '📢';
+    document.getElementById('announcement-message').value = '';
+    document.getElementById('announcement-is-active').checked = true;
+    document.getElementById('announcement-modal-title').textContent = 'Create Announcement';
+    document.getElementById('announcement-modal').style.display = 'flex';
+}
+
+function editAnnouncement(id, type, message, icon, isActive) {
+    document.getElementById('announcement-id').value = id;
+    document.getElementById('announcement-type').value = type;
+    document.getElementById('announcement-icon').value = icon || '';
+    document.getElementById('announcement-message').value = message;
+    document.getElementById('announcement-is-active').checked = isActive;
+    document.getElementById('announcement-modal-title').textContent = 'Edit Announcement';
+    document.getElementById('announcement-modal').style.display = 'flex';
+}
+
+async function saveAnnouncement() {
+    const id = document.getElementById('announcement-id').value;
+    const type = document.getElementById('announcement-type').value;
+    const icon = document.getElementById('announcement-icon').value.trim();
+    const message = document.getElementById('announcement-message').value.trim();
+    const isActive = document.getElementById('announcement-is-active').checked;
+    
+    if (!message) {
+        if (window.Utils) {
+            window.Utils.showToast('Message is required', 'error');
+        } else {
+            alert('Message is required');
+        }
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/announcements`, {
+            method: 'POST',
+            headers: window.Utils ? window.Utils.getAuthHeaders() : {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            body: JSON.stringify({
+                type,
+                message,
+                icon: icon || (type === 'popup' ? '💬' : '📢'),
+                isActive
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || 'Failed to save announcement');
+        }
+        
+        if (window.Utils) {
+            window.Utils.showToast('Announcement saved successfully', 'success');
+        }
+        document.getElementById('announcement-modal').style.display = 'none';
+        loadAnnouncements();
+    } catch (error) {
+        console.error('Error saving announcement:', error);
+        if (window.Utils) {
+            window.Utils.logError('Error saving announcement:', error);
+        } else {
+            alert('Failed to save announcement: ' + error.message);
+        }
+    }
+}
+
+async function deleteAnnouncement(id) {
+    if (!confirm('Are you sure you want to delete this announcement?\n\nThis action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/announcements/${id}`, {
+            method: 'DELETE',
+            headers: window.Utils ? window.Utils.getAuthHeaders() : {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || 'Failed to delete announcement');
+        }
+        
+        if (window.Utils) {
+            window.Utils.showToast('Announcement deleted successfully', 'success');
+        }
+        loadAnnouncements();
+    } catch (error) {
+        console.error('Error deleting announcement:', error);
+        if (window.Utils) {
+            window.Utils.logError('Error deleting announcement:', error);
+        } else {
+            alert('Failed to delete announcement: ' + error.message);
+        }
+    }
+}
+
+async function toggleAnnouncement(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/announcements/${id}/toggle`, {
+            method: 'PATCH',
+            headers: window.Utils ? window.Utils.getAuthHeaders() : {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || 'Failed to toggle announcement');
+        }
+        
+        if (window.Utils) {
+            window.Utils.showToast('Announcement status updated', 'success');
+        }
+        loadAnnouncements();
+    } catch (error) {
+        console.error('Error toggling announcement:', error);
+        if (window.Utils) {
+            window.Utils.logError('Error toggling announcement:', error);
+        } else {
+            alert('Failed to toggle announcement: ' + error.message);
+        }
+    }
+}
+
+function closeAnnouncementModal() {
+    document.getElementById('announcement-modal').style.display = 'none';
 }
 

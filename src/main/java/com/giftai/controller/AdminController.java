@@ -2,11 +2,14 @@ package com.giftai.controller;
 
 import com.giftai.entity.UserEntity;
 import com.giftai.model.AdminStatsResponse;
+import com.giftai.model.AnnouncementRequest;
+import com.giftai.model.AnnouncementResponse;
 import com.giftai.model.BookResponse;
 import com.giftai.model.BookUpdateRequest;
 import com.giftai.model.UserProfileResponse;
 import com.giftai.model.UserUpdateRequest;
 import com.giftai.service.AdminService;
+import com.giftai.service.AnnouncementService;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +32,7 @@ import java.util.Map;
 public class AdminController {
     
     private final AdminService adminService;
+    private final AnnouncementService announcementService;
     
     @GetMapping("/users")
     @Operation(summary = "Get all users", description = "Retrieves all users. Requires admin authentication.")
@@ -196,6 +200,99 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error updating book: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/announcements")
+    @Operation(summary = "Get all announcements", description = "Retrieves all announcements. Requires admin authentication.")
+    public ResponseEntity<?> getAllAnnouncements(@AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication required"));
+        }
+        
+        if (user.getIsAdmin() == null || !user.getIsAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Admin access required"));
+        }
+        
+        try {
+            List<AnnouncementResponse> announcements = announcementService.getAllAnnouncements();
+            return ResponseEntity.ok(announcements);
+        } catch (Exception e) {
+            log.error("Error retrieving announcements: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to retrieve announcements"));
+        }
+    }
+    
+    @PostMapping("/announcements")
+    @Operation(summary = "Create or update announcement", description = "Creates a new announcement or updates existing. Requires admin authentication.")
+    public ResponseEntity<?> createAnnouncement(@Valid @RequestBody AnnouncementRequest request,
+                                                @AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication required"));
+        }
+        
+        if (user.getIsAdmin() == null || !user.getIsAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Admin access required"));
+        }
+        
+        try {
+            AnnouncementResponse announcement = announcementService.createOrUpdateAnnouncement(request);
+            return ResponseEntity.ok(announcement);
+        } catch (Exception e) {
+            log.error("Error creating announcement: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/announcements/{id}")
+    @Operation(summary = "Delete announcement", description = "Deletes an announcement. Requires admin authentication.")
+    public ResponseEntity<?> deleteAnnouncement(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication required"));
+        }
+        
+        if (user.getIsAdmin() == null || !user.getIsAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Admin access required"));
+        }
+        
+        try {
+            announcementService.deleteAnnouncement(id);
+            return ResponseEntity.ok(Map.of("message", "Announcement deleted successfully"));
+        } catch (Exception e) {
+            log.error("Error deleting announcement: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @PatchMapping("/announcements/{id}/toggle")
+    @Operation(summary = "Toggle announcement", description = "Activates or deactivates an announcement. Requires admin authentication.")
+    public ResponseEntity<?> toggleAnnouncement(@PathVariable Long id, @AuthenticationPrincipal UserEntity user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication required"));
+        }
+        
+        if (user.getIsAdmin() == null || !user.getIsAdmin()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Admin access required"));
+        }
+        
+        try {
+            AnnouncementResponse announcement = announcementService.toggleAnnouncement(id);
+            return ResponseEntity.ok(announcement);
+        } catch (Exception e) {
+            log.error("Error toggling announcement: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
     }

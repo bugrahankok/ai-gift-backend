@@ -244,6 +244,33 @@ public class DatabaseMigration {
                 log.info("✅ 'is_admin' column already exists in users table");
             }
             
+            // Check if announcements table exists
+            String checkAnnouncementsTableSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.tables 
+                WHERE table_name = 'announcements'
+                """;
+            
+            Integer announcementsTableExists = jdbcTemplate.queryForObject(checkAnnouncementsTableSql, Integer.class);
+            
+            if (announcementsTableExists == null || announcementsTableExists == 0) {
+                log.info("Creating 'announcements' table...");
+                jdbcTemplate.execute("""
+                    CREATE TABLE IF NOT EXISTS announcements (
+                        id BIGSERIAL PRIMARY KEY,
+                        type VARCHAR(50) NOT NULL,
+                        message TEXT NOT NULL,
+                        icon VARCHAR(10),
+                        is_active BOOLEAN NOT NULL DEFAULT true,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """);
+                log.info("✅ Successfully created 'announcements' table");
+            } else {
+                log.info("✅ 'announcements' table already exists");
+            }
+            
             log.info("Database migration completed successfully");
             
         } catch (Exception e) {
