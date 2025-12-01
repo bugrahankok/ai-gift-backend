@@ -42,11 +42,12 @@ public class UserService {
                 .name(user.getName())
                 .createdAt(user.getCreatedAt())
                 .totalBooks(books.size())
+                .isAdmin(user.getIsAdmin() != null ? user.getIsAdmin() : false)
                 .books(bookResponses)
                 .build();
     }
     
-    private BookResponse toBookResponse(BookEntity entity) {
+    public BookResponse toBookResponse(BookEntity entity) {
         // Deserialize characters from JSON
         List<CharacterInfo> characters = new ArrayList<>();
         if (entity.getCharacters() != null && !entity.getCharacters().trim().isEmpty()) {

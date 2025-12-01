@@ -18,6 +18,7 @@ public class UserProfileResponse {
     private String name;
     private LocalDateTime createdAt;
     private Integer totalBooks;
+    private Boolean isAdmin;
     private List<BookResponse> books;
 }
 

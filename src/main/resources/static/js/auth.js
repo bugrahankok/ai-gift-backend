@@ -65,6 +65,14 @@ async function handleLogin(e) {
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userName', data.name);
         localStorage.setItem('userId', data.userId);
+        
+        // Store user info including isAdmin
+        localStorage.setItem('userInfo', JSON.stringify({
+            email: data.email,
+            name: data.name,
+            userId: data.userId,
+            isAdmin: data.isAdmin || false
+        }));
 
         document.cookie = `authToken=${data.token}; path=/; max-age=86400; SameSite=Lax`;
 
@@ -125,6 +133,14 @@ async function handleRegister(e) {
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userName', data.name);
         localStorage.setItem('userId', data.userId);
+        
+        // Store user info including isAdmin
+        localStorage.setItem('userInfo', JSON.stringify({
+            email: data.email,
+            name: data.name,
+            userId: data.userId,
+            isAdmin: data.isAdmin || false
+        }));
 
         document.cookie = `authToken=${data.token}; path=/; max-age=86400; SameSite=Lax`;
 
@@ -151,6 +167,7 @@ function handleLogout() {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
     localStorage.removeItem('userId');
+    localStorage.removeItem('userInfo');
     document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     
     // Update header immediately to reflect logout

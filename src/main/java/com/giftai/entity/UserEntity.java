@@ -31,6 +31,10 @@ public class UserEntity {
     @Column(length = 100)
     private String name;
     
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isAdmin = false;
+    
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

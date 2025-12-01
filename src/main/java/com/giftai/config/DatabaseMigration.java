@@ -227,6 +227,23 @@ public class DatabaseMigration {
                 log.info("✅ 'main_topic' column already exists in books table");
             }
             
+            // Check if is_admin column exists in users table
+            String checkIsAdminColumnSql = """
+                SELECT COUNT(*) 
+                FROM information_schema.columns 
+                WHERE table_name = 'users' AND column_name = 'is_admin'
+                """;
+            
+            Integer isAdminColumnExists = jdbcTemplate.queryForObject(checkIsAdminColumnSql, Integer.class);
+            
+            if (isAdminColumnExists == null || isAdminColumnExists == 0) {
+                log.info("Adding missing 'is_admin' column to users table...");
+                jdbcTemplate.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false NOT NULL");
+                log.info("✅ Successfully added 'is_admin' column to users table");
+            } else {
+                log.info("✅ 'is_admin' column already exists in users table");
+            }
+            
             log.info("Database migration completed successfully");
             
         } catch (Exception e) {

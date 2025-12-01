@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - BookifyAI</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Announcement Bar -->
+    <div class="announcement-bar" id="announcement-bar">
+        <div class="announcement-content">
+            <span class="announcement-icon">📢</span>
+            <span class="announcement-text">Welcome to BookifyAI! Create personalized e-books with AI magic ✨</span>
+        </div>
+        <button class="announcement-close" id="announcement-close" aria-label="Close announcement">×</button>
+    </div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-icon">📖</div>
+                    <h1 class="logo">Bookify<span class="logo-ai">AI</span> <span style="font-size: 1.5rem; color: var(--warning-color);">Admin</span></h1>
+                </div>
+                <!-- Navigation bar will be dynamically created by nav.js -->
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div id="admin-loading" class="loading" style="padding: 60px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">⚙️</div>
+                <p>Loading admin panel...</p>
+            </div>
+
+            <div id="admin-content" style="display: none;">
+                <!-- Statistics Section -->
+                <div class="card" style="margin-bottom: 30px;">
+                    <h2 class="card-title">📊 Statistics Overview</h2>
+                    <div class="stats-grid" id="stats-grid">
+                        <!-- Stats will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="card" style="margin-bottom: 30px;">
+                    <h2 class="card-title">📈 Analytics Charts</h2>
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <h3>Books by Theme</h3>
+                            <canvas id="theme-chart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h3>Books by Language</h3>
+                            <canvas id="language-chart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h3>Books by Tone</h3>
+                            <canvas id="tone-chart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h3>Books Created (Last 30 Days)</h3>
+                            <canvas id="books-timeline-chart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h3>Users Created (Last 30 Days)</h3>
+                            <canvas id="users-timeline-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs for Users and Books -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="users">👥 Users</button>
+                    <button class="tab-btn" data-tab="books">📚 All Books</button>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="users-tab" class="tab-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">User List</h2>
+                            <button class="btn btn-secondary" onclick="loadUsers()">🔄 Refresh</button>
+                        </div>
+                        <div id="users-content" class="admin-table-container">
+                            <!-- Users will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Books Tab -->
+                <div id="books-tab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">All Books (Public & Private)</h2>
+                            <button class="btn btn-secondary" onclick="loadBooks()">🔄 Refresh</button>
+                        </div>
+                        <div id="books-content" class="admin-table-container">
+                            <!-- Books will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 BookifyAI. All rights reserved.</p>
+                <div class="footer-links">
+                    <a href="#" class="footer-link" id="privacy-link">Privacy Policy</a>
+                    <span class="footer-separator">|</span>
+                    <a href="#" class="footer-link" id="terms-link">Terms of Service</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Edit User</h2>
+                <button class="modal-close" onclick="closeEditUserModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-user-form" onsubmit="event.preventDefault(); saveUser();">
+                    <input type="hidden" id="edit-user-id">
+                    <div class="form-group">
+                        <label for="edit-user-name" class="form-label">Name</label>
+                        <input type="text" id="edit-user-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-user-email" class="form-label">Email</label>
+                        <input type="email" id="edit-user-email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-user-password" class="form-label">New Password (leave empty to keep current)</label>
+                        <input type="password" id="edit-user-password" class="form-input" placeholder="Enter new password (min 6 characters)" minlength="6">
+                        <small style="color: var(--text-secondary); font-size: 0.85rem;">Leave empty if you don't want to change the password</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="edit-user-is-admin">
+                            Admin User
+                        </label>
+                    </div>
+                    <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditUserModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Book Modal -->
+    <div id="edit-book-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2>Edit Book</h2>
+                <button class="modal-close" onclick="closeEditBookModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-book-form" onsubmit="event.preventDefault(); saveBook();">
+                    <input type="hidden" id="edit-book-id">
+                    <div class="form-group">
+                        <label for="edit-book-name" class="form-label">Name *</label>
+                        <input type="text" id="edit-book-name" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-age" class="form-label">Age</label>
+                        <input type="number" id="edit-book-age" class="form-input" min="1" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-gender" class="form-label">Gender</label>
+                        <input type="text" id="edit-book-gender" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-language" class="form-label">Language</label>
+                        <input type="text" id="edit-book-language" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-theme" class="form-label">Theme *</label>
+                        <input type="text" id="edit-book-theme" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-main-topic" class="form-label">Main Topic</label>
+                        <input type="text" id="edit-book-main-topic" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-tone" class="form-label">Tone *</label>
+                        <input type="text" id="edit-book-tone" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-giver" class="form-label">Giver *</label>
+                        <input type="text" id="edit-book-giver" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-book-appearance" class="form-label">Appearance</label>
+                        <textarea id="edit-book-appearance" class="form-input" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="edit-book-is-public">
+                            Public Book
+                        </label>
+                    </div>
+                    <div class="modal-footer" style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditBookModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Privacy Policy</h2>
+                <button class="modal-close" id="privacy-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Last Updated: January 2025</strong></p>
+                <p>For full Privacy Policy, please visit our main page.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="terms-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Terms of Service</h2>
+                <button class="modal-close" id="terms-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Last Updated: January 2025</strong></p>
+                <p>For full Terms of Service, please visit our main page.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/utils.js"></script>
+    <script src="/js/nav.js"></script>
+    <script src="/js/modals.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>
+

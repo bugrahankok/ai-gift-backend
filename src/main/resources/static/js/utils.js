@@ -9,6 +9,63 @@
                         window.location.hostname !== '127.0.0.1';
 
     /**
+     * Get authentication headers for API requests
+     */
+    function getAuthHeaders() {
+        const token = localStorage.getItem('authToken');
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : ''
+        };
+    }
+
+    /**
+     * Show toast notification
+     */
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        } else {
+            // Fallback to console if toast element doesn't exist
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+    }
+
+    /**
+     * Log error with optional toast notification
+     */
+    function logError(message, error) {
+        console.error(message, error);
+        if (error && error.message) {
+            showToast(`${message}: ${error.message}`, 'error');
+        } else {
+            showToast(message, 'error');
+        }
+    }
+
+    /**
+     * Check if running in production
+     */
+    function isProductionEnv() {
+        return isProduction;
+    }
+
+    /**
+     * Log message (only in development)
+     */
+    function log(...args) {
+        if (!isProduction) {
+            console.log(...args);
+        }
+    }
+
+    /**
      * Safe console logging - only logs in development
      */
     window.safeLog = function(...args) {
@@ -99,6 +156,15 @@
         }
 
         return 'An error occurred. Please try again';
+    };
+
+    // Export Utils object
+    window.Utils = {
+        getAuthHeaders: getAuthHeaders,
+        showToast: showToast,
+        logError: logError,
+        isProduction: isProductionEnv,
+        log: log
     };
 
 })();

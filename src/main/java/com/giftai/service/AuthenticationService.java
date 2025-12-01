@@ -43,6 +43,7 @@ public class AuthenticationService {
                 .email(user.getEmail())
                 .name(user.getName())
                 .userId(user.getId())
+                .isAdmin(user.getIsAdmin() != null ? user.getIsAdmin() : false)
                 .message("Registration successful")
                 .build();
     }
@@ -64,6 +65,7 @@ public class AuthenticationService {
                 .email(user.getEmail())
                 .name(user.getName())
                 .userId(user.getId())
+                .isAdmin(user.getIsAdmin() != null ? user.getIsAdmin() : false)
                 .message("Login successful")
                 .build();
     }
