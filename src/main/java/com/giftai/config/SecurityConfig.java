@@ -55,12 +55,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // TODO: In production, replace "*" with specific allowed origins
-        // Example: configuration.setAllowedOrigins(List.of("https://yourdomain.com"));
-        configuration.setAllowedOrigins(List.of("*"));
+        // Allow all origins (for development)
+        // In production, replace with specific allowed origins
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false); // Set to false when using wildcard origins
+        configuration.setExposedHeaders(List.of("Authorization"));
         // Set max age for preflight requests (1 hour)
         configuration.setMaxAge(3600L);
         

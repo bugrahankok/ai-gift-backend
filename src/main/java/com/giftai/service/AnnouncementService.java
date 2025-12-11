@@ -26,9 +26,15 @@ public class AnnouncementService {
     }
     
     public AnnouncementResponse getActiveAnnouncement(String type) {
-        return announcementRepository.findByTypeAndIsActiveTrueOrderByUpdatedAtDesc(type)
-                .map(this::toResponse)
-                .orElse(null);
+        try {
+            return announcementRepository.findByTypeAndIsActiveTrueOrderByUpdatedAtDesc(type)
+                    .map(this::toResponse)
+                    .orElse(null);
+        } catch (Exception e) {
+            log.warn("Error retrieving active announcement for type {}: {}", type, e.getMessage());
+            // Return null if table doesn't exist or other error occurs
+            return null;
+        }
     }
     
     @Transactional

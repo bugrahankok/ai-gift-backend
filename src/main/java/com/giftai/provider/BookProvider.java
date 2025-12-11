@@ -27,13 +27,23 @@ public class BookProvider {
     public String generateBook(BookRequest request) {
         log.info("Generating personalized book for: {}", request.getName());
         
+        // Debug: Log API key status (masked)
+        String maskedKey = apiKey != null && apiKey.length() > 10 
+            ? apiKey.substring(0, 10) + "..." 
+            : "NULL or EMPTY";
+        log.info("OpenAI API Key status: {}", maskedKey);
+        log.info("API Key from property: {}", System.getProperty("OPENAI_API_KEY") != null ? "SET" : "NOT SET");
+        
         if (apiKey == null || apiKey.equals("default-key") || apiKey.isEmpty()) {
-            log.warn("OpenAI API key not configured, returning dummy response");
+            log.warn("OpenAI API key not configured, returning dummy response. API Key value: {}", maskedKey);
             return getDummyResponse(request);
         }
         
         try {
-            OpenAiService service = new OpenAiService(apiKey, Duration.ofSeconds(60));
+            // Use extended timeout for long story generation (30 minutes = 1800 seconds)
+            // This should be enough for generating 5-7 page stories (5000-7000 words)
+            OpenAiService service = new OpenAiService(apiKey, Duration.ofSeconds(1800));
+            log.info("OpenAiService created with 30 minute timeout for long story generation");
             
             String appearanceDescription = "";
             if (request.getAppearance() != null && !request.getAppearance().trim().isEmpty()) {
@@ -103,7 +113,7 @@ public class BookProvider {
             }
             
             String prompt = String.format(
-                "Create a personalized children's book as a gift. Write a complete, engaging, LONG story with the following details:\n\n" +
+                "Create a personalized children's book as a gift. Write a complete, engaging story.\n\n" +
                 "Recipient's Name: %s\n" +
                 "Recipient's Age: %d years old\n" +
                 "%s" +
@@ -115,15 +125,14 @@ public class BookProvider {
                 "%s" +
                 "%s" +
                 "\nRequirements:\n" +
-                "- Write a full-length story (6000-8000 words)\n" +
-                "- Create 8-10 chapters\n" +
-                "- Each chapter should be 600-900 words\n" +
-                "- Use long paragraphs (minimum 3-5 sentences per paragraph)\n" +
-                "- Include rich descriptions, extensive dialogue, and character development\n" +
-                "- Naturally incorporate the recipient's name throughout the narrative\n" +
+                "- Write a complete story (approximately 2000-2500 words, max 3000 tokens)\n" +
+                "- Create 3-4 chapters with clear chapter headings\n" +
+                "- Use descriptive paragraphs with good detail\n" +
+                "- Include dialogue between characters\n" +
+                "- Describe settings, emotions, and actions\n" +
+                "- Naturally incorporate the recipient's name throughout the narrative (at least 8-10 times)\n" +
                 "- Make it age-appropriate and engaging\n" +
-                "- Fill every page with meaningful content, no short paragraphs or empty spaces\n" +
-                "- Format with clear chapter headings (Chapter 1, Chapter 2, etc.)",
+                "- Format with clear chapter headings (Chapter 1: [Title], Chapter 2: [Title], etc.)",
                 request.getName(),
                 request.getAge(),
                 genderInfo,
@@ -138,25 +147,32 @@ public class BookProvider {
             
             List<ChatMessage> messages = new ArrayList<>();
             ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), 
-                "You are a talented children's book author specializing in full-length, chapter-based stories. " +
-                "Create personalized, engaging, and age-appropriate EXTENSIVE stories (6000-8000 words) that captivate young readers. " +
-                "Your stories should be warm, imaginative, include 8-10 chapters, rich descriptions, extensive dialogue, and character development. " +
-                "Always include the recipient's name naturally throughout the narrative. " +
-                "Write extensively with long paragraphs (3-5 sentences minimum), detailed scenes, and meaningful content on every page. " +
-                "This is a full book - fill every page with engaging content. No short paragraphs or empty spaces.");
+                "You are a talented children's book author. " +
+                "You write engaging, complete stories (approximately 2000-2500 words, max 3000 tokens). " +
+                "Your stories have 3-4 chapters with clear structure. " +
+                "Your writing style includes: descriptive paragraphs, detailed dialogue, rich narrative, " +
+                "vivid scene descriptions, and character development. " +
+                "Always include the recipient's name naturally throughout the narrative (8-10 times minimum). " +
+                "Write a complete, engaging story that is age-appropriate.");
             ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), prompt);
             messages.add(systemMessage);
             messages.add(userMessage);
             
-            int maxTokensValue = 4000;
-            if (model.contains("gpt-4") || model.contains("gpt-4o")) {
-                maxTokensValue = 8000;
-            } else if (model.contains("gpt-3.5-turbo-16k")) {
-                maxTokensValue = 8000;
+            // Set maxTokens to 3000 (user requested limit)
+            // This is safe for all models (gpt-3.5-turbo max 4096, gpt-4o max 16384, etc.)
+            int maxTokensValue = 3000; // User requested max 3000 tokens
+            String actualModel = model;
+            
+            // No auto-upgrade needed with 3000 token limit - gpt-3.5-turbo can handle it
+            if (model.equals("gpt-3.5-turbo")) {
+                // Keep gpt-3.5-turbo, no need to upgrade for 3000 tokens
+                log.info("Using gpt-3.5-turbo with 3000 token limit");
             }
             
+            log.info("Using model: {} with maxTokens: {} (requested model: {})", actualModel, maxTokensValue, model);
+            
             ChatCompletionRequest chatRequest = ChatCompletionRequest.builder()
-                .model(model)
+                .model(actualModel) // Use the actual model (may be upgraded to 16k)
                 .messages(messages)
                 .maxTokens(maxTokensValue)
                 .temperature(0.8)

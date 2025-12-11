@@ -55,10 +55,20 @@ async function handleLogin(e) {
             body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            // If response is not JSON, create error object
+            const text = await response.text();
+            console.error('Login error - non-JSON response:', text);
+            throw new Error(text || 'Login failed');
+        }
 
         if (!response.ok) {
-            throw new Error(data.error || 'Login failed');
+            const errorMsg = data.error || data.message || 'Login failed';
+            console.error('Login failed:', response.status, errorMsg);
+            throw new Error(errorMsg);
         }
 
         localStorage.setItem('authToken', data.token);
@@ -123,10 +133,17 @@ async function handleRegister(e) {
             body: JSON.stringify({ name, email, password })
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            // If response is not JSON, create error object
+            const text = await response.text();
+            throw new Error(text || 'Registration failed');
+        }
 
         if (!response.ok) {
-            throw new Error(data.error || 'Registration failed');
+            throw new Error(data.error || data.message || 'Registration failed');
         }
 
         localStorage.setItem('authToken', data.token);

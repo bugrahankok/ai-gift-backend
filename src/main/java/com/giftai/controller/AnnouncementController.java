@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,13 +27,14 @@ public class AnnouncementController {
         try {
             AnnouncementResponse announcement = announcementService.getActiveAnnouncement(type);
             if (announcement == null) {
+                // Return inactive response if no announcement found (table might not exist yet)
                 return ResponseEntity.ok(Map.of("active", false));
             }
             return ResponseEntity.ok(announcement);
         } catch (Exception e) {
-            log.error("Error retrieving active announcement: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to retrieve announcement"));
+            log.warn("Error retrieving active announcement for type {}: {}", type, e.getMessage());
+            // Return inactive response instead of error to prevent frontend issues
+            return ResponseEntity.ok(Map.of("active", false));
         }
     }
 }

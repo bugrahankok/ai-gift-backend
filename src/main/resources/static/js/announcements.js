@@ -8,22 +8,31 @@ async function loadPublicAnnouncements() {
         // Load announcement bar
         const barResponse = await fetch('/api/announcements/active/bar');
         if (barResponse.ok) {
-            const barData = await barResponse.json();
-            if (barData.active !== false && barData.message) {
-                updateAnnouncementBar(barData);
+            try {
+                const barData = await barResponse.json();
+                if (barData.active !== false && barData.message) {
+                    updateAnnouncementBar(barData);
+                }
+            } catch (e) {
+                // Silently ignore JSON parse errors
             }
         }
         
         // Load popup announcement
         const popupResponse = await fetch('/api/announcements/active/popup');
         if (popupResponse.ok) {
-            const popupData = await popupResponse.json();
-            if (popupData.active !== false && popupData.message) {
-                showPopupAnnouncement(popupData);
+            try {
+                const popupData = await popupResponse.json();
+                if (popupData.active !== false && popupData.message) {
+                    showPopupAnnouncement(popupData);
+                }
+            } catch (e) {
+                // Silently ignore JSON parse errors
             }
         }
     } catch (error) {
-        console.error('Error loading announcements:', error);
+        // Silently ignore announcement loading errors
+        // Announcements are optional features
     }
 }
 
