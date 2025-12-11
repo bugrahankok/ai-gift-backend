@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookifyAI - Personalized E-Book Creator</title>
+    <title>BookifyAI - Children's Book Creator</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
     <div class="announcement-bar" id="announcement-bar">
         <div class="announcement-content">
             <span class="announcement-icon">📢</span>
-            <span class="announcement-text">Welcome to BookifyAI! Create personalized e-books with AI magic ✨</span>
+            <span class="announcement-text">Welcome to BookifyAI! Create personalized children's books with AI magic ✨</span>
         </div>
         <button class="announcement-close" id="announcement-close" aria-label="Close announcement">×</button>
     </div>
@@ -27,7 +27,7 @@
                     <div class="logo-icon">📖</div>
                     <h1 class="logo">Bookify<span class="logo-ai">AI</span></h1>
                 </div>
-                <p class="tagline">Create Personalized E-Books with AI</p>
+                <p class="tagline">Create Personalized Children's Books with AI</p>
                 <!-- Navigation bar will be dynamically created by nav.js -->
             </div>
         </header>
@@ -53,51 +53,118 @@
 
             <div class="tab-content" id="create-tab">
                 <div class="card">
-                    <h2 class="card-title">Create Personalized E-Book</h2>
+                    <h2 class="card-title">Create Children's Book</h2>
+                    
+                    <!-- Progress Indicator -->
+                    <div class="step-progress">
+                        <div class="step-progress-bar">
+                            <div class="step-progress-fill" id="step-progress-fill"></div>
+                        </div>
+                        <div class="step-indicators" id="step-indicators">
+                            <div class="step-indicator active" data-step="1" onclick="goToStep(1)">
+                                <div class="step-number">1</div>
+                                <div class="step-label">Name</div>
+                            </div>
+                            <div class="step-indicator" data-step="2" onclick="goToStep(2)">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Age</div>
+                            </div>
+                            <div class="step-indicator" data-step="3" onclick="goToStep(3)">
+                                <div class="step-number">3</div>
+                                <div class="step-label">Gender</div>
+                            </div>
+                            <div class="step-indicator" data-step="4" onclick="goToStep(4)">
+                                <div class="step-number">4</div>
+                                <div class="step-label">Appearance</div>
+                            </div>
+                            <div class="step-indicator" data-step="5" onclick="goToStep(5)">
+                                <div class="step-number">5</div>
+                                <div class="step-label">Theme</div>
+                            </div>
+                            <div class="step-indicator" data-step="6" onclick="goToStep(6)">
+                                <div class="step-number">6</div>
+                                <div class="step-label">Type</div>
+                            </div>
+                            <div class="step-indicator" data-step="7" onclick="goToStep(7)">
+                                <div class="step-number">7</div>
+                                <div class="step-label">Tone</div>
+                            </div>
+                            <div class="step-indicator" data-step="8" onclick="goToStep(8)">
+                                <div class="step-number">8</div>
+                                <div class="step-label">Message</div>
+                            </div>
+                            <div class="step-indicator" data-step="9" onclick="goToStep(9)">
+                                <div class="step-number">9</div>
+                                <div class="step-label">Language</div>
+                            </div>
+                            <div class="step-indicator" data-step="10" onclick="goToStep(10)">
+                                <div class="step-number">10</div>
+                                <div class="step-label">Giver</div>
+                            </div>
+                            <div class="step-indicator" data-step="11" onclick="goToStep(11)">
+                                <div class="step-number">11</div>
+                                <div class="step-label">Characters</div>
+                            </div>
+                            <div class="step-indicator" data-step="12" onclick="goToStep(12)">
+                                <div class="step-number">12</div>
+                                <div class="step-label">Visibility</div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <form id="book-form" class="gift-form">
+                        <!-- Step 1: Child's Name -->
+                        <div class="form-step active" data-step="1">
                         <div class="form-group">
-                            <label for="name" class="form-label">Recipient's Name</label>
+                                <label for="name" class="form-label">Child's Name *</label>
                             <input type="text" id="name" name="name" class="form-input" 
-                                   placeholder="Enter the recipient's name" required>
+                                       placeholder="Enter the child's name who will be the hero of the story">
+                            </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
+                        </div>
                         </div>
 
+                        <!-- Step 2: Age Range -->
+                        <div class="form-step" data-step="2">
                         <div class="form-group">
-                            <label for="appearance" class="form-label">Appearance (Optional)</label>
-                            <textarea id="appearance" name="appearance" class="form-textarea" 
-                                      rows="3" placeholder="e.g., Brown hair, blue eyes, tall, wears glasses... (This will be used to create a visual description in the story)"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Age Range</label>
+                                <label class="form-label">Age Range *</label>
                             <div class="option-grid" id="age-options">
                                 <div class="option-card" data-value="0">
                                     <div class="option-icon">👶</div>
-                                    <div class="option-label">0-5 years</div>
+                                        <div class="option-label">0-3 years</div>
+                                    </div>
+                                    <div class="option-card" data-value="3">
+                                        <div class="option-icon">🧒</div>
+                                        <div class="option-label">3-5 years</div>
                                 </div>
                                 <div class="option-card" data-value="6">
-                                    <div class="option-icon">🧒</div>
-                                    <div class="option-label">6-12 years</div>
+                                        <div class="option-icon">👦</div>
+                                        <div class="option-label">6-8 years</div>
+                                    </div>
+                                    <div class="option-card" data-value="9">
+                                        <div class="option-icon">👧</div>
+                                        <div class="option-label">9-12 years</div>
                                 </div>
                                 <div class="option-card" data-value="13">
-                                    <div class="option-icon">👦</div>
-                                    <div class="option-label">13-18 years</div>
+                                        <div class="option-icon">🧑</div>
+                                        <div class="option-label">13-15 years</div>
                                 </div>
-                                <div class="option-card" data-value="19">
+                                    <div class="option-card" data-value="16">
                                     <div class="option-icon">👨</div>
-                                    <div class="option-label">19-30 years</div>
+                                        <div class="option-label">16-18 years</div>
                                 </div>
-                                <div class="option-card" data-value="31">
-                                    <div class="option-icon">👩</div>
-                                    <div class="option-label">31-50 years</div>
                                 </div>
-                                <div class="option-card" data-value="50">
-                                    <div class="option-icon">👴</div>
-                                    <div class="option-label">50+ years</div>
+                                <input type="hidden" id="age" name="age">
                                 </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
                             </div>
-                            <input type="hidden" id="age" name="age" required>
                         </div>
 
+                        <!-- Step 3: Gender -->
+                        <div class="form-step" data-step="3">
                         <div class="form-group">
                             <label class="form-label">Gender (Optional)</label>
                             <div class="gender-options">
@@ -115,88 +182,93 @@
                                         <div class="gender-label">Girl</div>
                                     </div>
                                 </label>
-                                <label class="gender-option">
-                                    <input type="radio" name="gender" value="Other" id="gender-other">
-                                    <div class="gender-card">
-                                        <div class="gender-icon">🌈</div>
-                                        <div class="gender-label">Other</div>
                                     </div>
-                                </label>
-                                <label class="gender-option">
-                                    <input type="radio" name="gender" value="" id="gender-none" checked>
-                                    <div class="gender-card">
-                                        <div class="gender-icon">✨</div>
-                                        <div class="gender-label">Prefer not to say</div>
                                     </div>
-                                </label>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
                             </div>
                         </div>
 
+                        <!-- Step 4: Appearance -->
+                        <div class="form-step" data-step="4">
                         <div class="form-group">
-                            <label class="form-label">Book Theme</label>
-                            <div class="option-grid" id="theme-options">
-                                <div class="option-card" data-value="Adventure">
-                                    <div class="option-icon">🏔️</div>
-                                    <div class="option-label">Adventure</div>
+                                <label for="appearance" class="form-label">Appearance (Optional)</label>
+                                <textarea id="appearance" name="appearance" class="form-textarea" 
+                                          rows="3" placeholder="e.g., Brown hair, blue eyes, tall, wears glasses... (This will be used to create a visual description in the story)"></textarea>
                                 </div>
-                                <div class="option-card" data-value="Fantasy">
-                                    <div class="option-icon">🧙</div>
-                                    <div class="option-label">Fantasy</div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
                                 </div>
-                                <div class="option-card" data-value="Friendship">
-                                    <div class="option-icon">👫</div>
-                                    <div class="option-label">Friendship</div>
                                 </div>
-                                <div class="option-card" data-value="Magic">
+
+                        <!-- Step 5: Book Theme -->
+                        <div class="form-step" data-step="5">
+                            <div class="form-group">
+                                <label class="form-label">Book Theme *</label>
+                                <div class="option-grid" id="theme-options">
+                                    <div class="option-card" data-value="Magical Adventure">
                                     <div class="option-icon">✨</div>
-                                    <div class="option-label">Magic</div>
+                                        <div class="option-label">Magical Adventure</div>
                                 </div>
-                                <div class="option-card" data-value="Nature">
-                                    <div class="option-icon">🌳</div>
-                                    <div class="option-label">Nature</div>
+                                    <div class="option-card" data-value="Fairy Tale Kingdom">
+                                        <div class="option-icon">👑</div>
+                                        <div class="option-label">Fairy Tale Kingdom</div>
                                 </div>
-                                <div class="option-card" data-value="Animals">
+                                    <div class="option-card" data-value="Animal Friends">
                                     <div class="option-icon">🐾</div>
-                                    <div class="option-label">Animals</div>
+                                        <div class="option-label">Animal Friends</div>
                                 </div>
-                                <div class="option-card" data-value="Space">
+                                    <div class="option-card" data-value="Space Explorer">
                                     <div class="option-icon">🚀</div>
-                                    <div class="option-label">Space</div>
+                                        <div class="option-label">Space Explorer</div>
                                 </div>
-                                <div class="option-card" data-value="Ocean">
+                                    <div class="option-card" data-value="Underwater World">
                                     <div class="option-icon">🌊</div>
-                                    <div class="option-label">Ocean</div>
+                                        <div class="option-label">Underwater World</div>
                                 </div>
-                                <div class="option-card" data-value="Fairy Tale">
-                                    <div class="option-icon">👑</div>
-                                    <div class="option-label">Fairy Tale</div>
-                                </div>
-                                <div class="option-card" data-value="Superhero">
+                                    <div class="option-card" data-value="Superhero Adventure">
                                     <div class="option-icon">🦸</div>
-                                    <div class="option-label">Superhero</div>
+                                        <div class="option-label">Superhero Adventure</div>
                                 </div>
-                                <div class="option-card" data-value="Mystery">
-                                    <div class="option-icon">🔍</div>
-                                    <div class="option-label">Mystery</div>
+                                    <div class="option-card" data-value="Enchanted Forest">
+                                        <div class="option-icon">🌳</div>
+                                        <div class="option-label">Enchanted Forest</div>
                                 </div>
-                                <div class="option-card" data-value="Science">
-                                    <div class="option-icon">🔬</div>
-                                    <div class="option-label">Science</div>
+                                    <div class="option-card" data-value="Dinosaur Land">
+                                        <div class="option-icon">🦕</div>
+                                        <div class="option-label">Dinosaur Land</div>
                                 </div>
-                                <div class="option-card" data-value="Pirates">
+                                    <div class="option-card" data-value="Pirate Adventure">
                                     <div class="option-icon">🏴‍☠️</div>
-                                    <div class="option-label">Pirates</div>
+                                        <div class="option-label">Pirate Adventure</div>
+                                    </div>
+                                    <div class="option-card" data-value="Princess Castle">
+                                        <div class="option-icon">🏰</div>
+                                        <div class="option-label">Princess Castle</div>
+                                    </div>
+                                    <div class="option-card" data-value="Toy World">
+                                        <div class="option-icon">🧸</div>
+                                        <div class="option-label">Toy World</div>
+                                    </div>
+                                    <div class="option-card" data-value="Rainbow Magic">
+                                        <div class="option-icon">🌈</div>
+                                        <div class="option-label">Rainbow Magic</div>
+                                    </div>
                                 </div>
-                                <div class="option-card" data-value="Dinosaurs">
-                                    <div class="option-icon">🦕</div>
-                                    <div class="option-label">Dinosaurs</div>
+                                <input type="hidden" id="theme" name="theme">
                                 </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
                             </div>
-                            <input type="hidden" id="theme" name="theme" required>
                         </div>
 
+                        <!-- Step 6: Book Type -->
+                        <div class="form-step" data-step="6">
                         <div class="form-group">
-                            <label class="form-label">Book Type</label>
+                                <label class="form-label">Book Type *</label>
                             <div class="option-grid" id="type-options">
                                 <div class="option-card" data-value="Story">
                                     <div class="option-icon">📖</div>
@@ -227,11 +299,18 @@
                                     <div class="option-label">Mystery Story</div>
                                 </div>
                             </div>
-                            <input type="hidden" id="book-type" name="book-type" required>
+                                <input type="hidden" id="book-type" name="book-type">
+                            </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
+                            </div>
                         </div>
 
+                        <!-- Step 7: Narrative Tone -->
+                        <div class="form-step" data-step="7">
                         <div class="form-group">
-                            <label class="form-label">Narrative Tone</label>
+                                <label class="form-label">Narrative Tone *</label>
                             <div class="option-grid" id="tone-options">
                                 <div class="option-card" data-value="Warm">
                                     <div class="option-icon">❤️</div>
@@ -262,17 +341,80 @@
                                     <div class="option-label">Mysterious</div>
                                 </div>
                             </div>
-                            <input type="hidden" id="tone" name="tone" required>
+                                <input type="hidden" id="tone" name="tone">
+                            </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
+                            </div>
                         </div>
 
+                        <!-- Step 8: Educational Message -->
+                        <div class="form-step" data-step="8">
                         <div class="form-group">
-                            <label for="main-topic" class="form-label">Main Topic (Optional)</label>
-                            <input type="text" id="main-topic" name="main-topic" class="form-input" 
-                                   placeholder="What should the main topic/subject of the book be? (e.g., friendship, courage, discovery, family...)">
+                                <label class="form-label">Educational Message *</label>
+                                <div class="option-grid" id="message-options">
+                                <div class="option-card" data-value="Friendship">
+                                    <div class="option-icon">👫</div>
+                                    <div class="option-label">Friendship</div>
+                                </div>
+                                <div class="option-card" data-value="Honesty">
+                                    <div class="option-icon">💎</div>
+                                    <div class="option-label">Honesty</div>
+                                </div>
+                                <div class="option-card" data-value="Courage">
+                                    <div class="option-icon">🦁</div>
+                                    <div class="option-label">Courage</div>
+                                </div>
+                                <div class="option-card" data-value="Kindness">
+                                    <div class="option-icon">❤️</div>
+                                    <div class="option-label">Kindness</div>
+                                </div>
+                                <div class="option-card" data-value="Sharing">
+                                    <div class="option-icon">🤝</div>
+                                    <div class="option-label">Sharing</div>
+                                </div>
+                                <div class="option-card" data-value="Respect">
+                                    <div class="option-icon">🙏</div>
+                                    <div class="option-label">Respect</div>
+                                </div>
+                                <div class="option-card" data-value="Perseverance">
+                                    <div class="option-icon">💪</div>
+                                    <div class="option-label">Perseverance</div>
+                                </div>
+                                <div class="option-card" data-value="Empathy">
+                                    <div class="option-icon">🤗</div>
+                                    <div class="option-label">Empathy</div>
+                                </div>
+                                <div class="option-card" data-value="Gratitude">
+                                    <div class="option-icon">🙌</div>
+                                    <div class="option-label">Gratitude</div>
+                                </div>
+                                <div class="option-card" data-value="Responsibility">
+                                    <div class="option-icon">⭐</div>
+                                    <div class="option-label">Responsibility</div>
+                                </div>
+                                <div class="option-card" data-value="Teamwork">
+                                    <div class="option-icon">👥</div>
+                                    <div class="option-label">Teamwork</div>
+                                </div>
+                                <div class="option-card" data-value="Self-Confidence">
+                                    <div class="option-icon">🌟</div>
+                                    <div class="option-label">Self-Confidence</div>
+                                </div>
+                                </div>
+                                <input type="hidden" id="main-topic" name="main-topic">
+                            </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
+                            </div>
                         </div>
 
+                        <!-- Step 9: Language -->
+                        <div class="form-step" data-step="9">
                         <div class="form-group">
-                            <label class="form-label">Language</label>
+                                <label class="form-label">Language *</label>
                             <div class="option-grid" id="language-options">
                                 <div class="option-card" data-value="English">
                                     <div class="option-icon">🇬🇧</div>
@@ -323,19 +465,33 @@
                                     <div class="option-label">Other</div>
                                 </div>
                             </div>
-                            <input type="hidden" id="language" name="language" required>
+                                <input type="hidden" id="language" name="language">
                             <div id="language-custom-container" style="display: none; margin-top: 15px;">
                                 <input type="text" id="language-custom" class="form-input" 
                                        placeholder="Enter language name (e.g., Dutch, Korean, Hindi...)">
+                                </div>
+                            </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
                             </div>
                         </div>
 
+                        <!-- Step 10: Gift Giver -->
+                        <div class="form-step" data-step="10">
                         <div class="form-group">
-                            <label for="giver" class="form-label">Gift Giver</label>
+                                <label for="giver" class="form-label">Gift Giver *</label>
                             <input type="text" id="giver" name="giver" class="form-input" 
-                                   placeholder="Who is giving this book?" required>
+                                       placeholder="Who is giving this book? (e.g., Mom, Dad, Aunt, Uncle...)">
+                            </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
+                            </div>
                         </div>
 
+                        <!-- Step 11: Characters -->
+                        <div class="form-step" data-step="11">
                         <div class="form-group">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <label class="form-label">Characters (Optional - Max 3)</label>
@@ -344,8 +500,15 @@
                                 </button>
                             </div>
                             <div id="characters-container"></div>
+                            </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">Next →</button>
+                            </div>
                         </div>
 
+                        <!-- Step 12: Visibility -->
+                        <div class="form-step" data-step="12">
                         <div class="form-group">
                             <label class="form-label">Visibility</label>
                             <div class="visibility-options">
@@ -367,14 +530,17 @@
                                 </label>
                             </div>
                         </div>
-
-                        <div id="login-required-message" class="login-required" style="display: none;">
+                            <div id="login-required-message" class="login-required" style="display: none; margin-top: 20px;">
                             <p>⚠️ Please <a href="/login.html" class="auth-link">login</a> or <a href="/register.html" class="auth-link">register</a> to create books.</p>
                         </div>
+                            <div class="step-actions">
+                                <button type="button" class="btn btn-secondary" onclick="prevStep()">← Back</button>
                         <button type="submit" class="btn btn-primary" id="submit-btn">
                             <span class="btn-text">Create Book</span>
                             <span class="btn-loader" style="display: none;">⏳ Generating...</span>
                         </button>
+                            </div>
+                        </div>
                     </form>
                 </div>
 

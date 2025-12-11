@@ -1,6 +1,8 @@
 const API_BASE_URL = '/api/book';
 let currentBookId = null;
 let pdfCheckInterval = null;
+let currentStep = 1;
+const totalSteps = 12;
 
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
@@ -53,14 +55,35 @@ function initializeForm() {
     const btnText = submitBtn.querySelector('.btn-text');
     const btnLoader = submitBtn.querySelector('.btn-loader');
 
-    setupOptionCards('age-options', 'age');
-    setupOptionCards('theme-options', 'theme');
-    setupOptionCards('type-options', 'book-type');
-    setupOptionCards('tone-options', 'tone');
+    setupOptionCards('age-options', 'age', () => {
+        if (validateStep(2)) {
+            setTimeout(() => nextStep(), 300);
+        }
+    });
+    setupOptionCards('theme-options', 'theme', () => {
+        if (validateStep(5)) {
+            setTimeout(() => nextStep(), 300);
+        }
+    });
+    setupOptionCards('type-options', 'book-type', () => {
+        if (validateStep(6)) {
+            setTimeout(() => nextStep(), 300);
+        }
+    });
+    setupOptionCards('tone-options', 'tone', () => {
+        if (validateStep(7)) {
+            setTimeout(() => nextStep(), 300);
+        }
+    });
+    setupOptionCards('message-options', 'main-topic', () => {
+        if (validateStep(8)) {
+            setTimeout(() => nextStep(), 300);
+        }
+    });
     setupLanguageOptions();
     
-    // Initialize character management
-    initializeCharacters();
+    // Initialize step navigation
+    initializeStepNavigation();
     
     // Initialize character management
     initializeCharacters();
@@ -113,8 +136,8 @@ function initializeForm() {
             bookData.theme = bookData.theme + ' - ' + bookType;
         }
 
-        if (!bookData.name || !bookData.age || !bookData.theme || !bookData.tone || !bookData.giver) {
-            showToast('Please fill in all required fields and select theme, type, and tone', 'error');
+        if (!bookData.name || !bookData.age || !bookData.theme || !bookData.tone || !bookData.giver || !bookData.mainTopic) {
+            showToast('Please fill in all required fields and select theme, type, tone, and educational message', 'error');
             return;
         }
 
@@ -153,7 +176,7 @@ function initializeForm() {
             currentBookId = result.bookId;
             
             // Hide animation and show success message
-            updateGeneratingMessage('🎉 Kitabınız hazır!', 'Kitabınıza yönlendiriliyorsunuz...');
+            updateGeneratingMessage('🎉 Your book is ready!', 'Redirecting to your book...');
             
             // Wait a moment then redirect to book details page
             setTimeout(() => {
@@ -450,7 +473,7 @@ async function loadHistory() {
         historyContent.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">⚠️</div>
-                <div class="empty-state-text">An error occurred while loading history</div>
+                <div class="empty-state-text">An error occurred while loading books</div>
             </div>
         `;
     }
@@ -559,7 +582,7 @@ async function loadDiscover() {
         discoverContent.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">⚠️</div>
-                <div class="empty-state-text">An error occurred while loading public books</div>
+                <div class="empty-state-text">An error occurred while loading books</div>
             </div>
         `;
     }
@@ -675,9 +698,11 @@ function formatBookContent(content) {
     return formatted;
 }
 
-function setupOptionCards(containerId, hiddenInputId) {
+function setupOptionCards(containerId, hiddenInputId, onSelectCallback = null) {
     const container = document.getElementById(containerId);
+    if (!container) return;
     const hiddenInput = document.getElementById(hiddenInputId);
+    if (!hiddenInput) return;
     const cards = container.querySelectorAll('.option-card');
 
     cards.forEach(card => {
@@ -685,6 +710,9 @@ function setupOptionCards(containerId, hiddenInputId) {
             cards.forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             hiddenInput.value = card.getAttribute('data-value');
+            if (onSelectCallback) {
+                onSelectCallback();
+            }
         });
     });
 }
@@ -1303,7 +1331,9 @@ function hideGeneratingAnimation() {
 
 function setupLanguageOptions() {
     const container = document.getElementById('language-options');
+    if (!container) return;
     const hiddenInput = document.getElementById('language');
+    if (!hiddenInput) return;
     const customContainer = document.getElementById('language-custom-container');
     const customInput = document.getElementById('language-custom');
     const cards = container.querySelectorAll('.option-card');
@@ -1320,12 +1350,18 @@ function setupLanguageOptions() {
             
             // Show/hide custom input
             if (value === 'OTHER') {
-                customContainer.style.display = 'block';
-                customInput.required = true;
+                if (customContainer) customContainer.style.display = 'block';
+                if (customInput) customInput.required = true;
             } else {
-                customContainer.style.display = 'none';
-                customInput.required = false;
-                customInput.value = '';
+                if (customContainer) customContainer.style.display = 'none';
+                if (customInput) {
+                    customInput.required = false;
+                    customInput.value = '';
+                }
+                // Auto-advance if valid
+                if (validateStep(9)) {
+                    setTimeout(() => nextStep(), 300);
+                }
             }
         });
     });
@@ -1336,3 +1372,172 @@ function setupLanguageOptions() {
         englishCard.click();
     }
 }
+
+// Step Navigation Functions
+function initializeStepNavigation() {
+    currentStep = 1;
+    updateStepDisplay();
+    updateProgressBar();
+}
+
+function nextStep() {
+    // Validate current step before proceeding
+    if (!validateStep(currentStep)) {
+        return;
+    }
+    
+    if (currentStep < totalSteps) {
+        currentStep++;
+        updateStepDisplay();
+        updateProgressBar();
+        updateStepIndicators();
+    }
+}
+
+function prevStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateStepDisplay();
+        updateProgressBar();
+        updateStepIndicators();
+    }
+}
+
+function goToStep(step) {
+    if (step >= 1 && step <= totalSteps) {
+        currentStep = step;
+        updateStepDisplay();
+        updateProgressBar();
+        updateStepIndicators();
+    }
+}
+
+function updateStepDisplay() {
+    const steps = document.querySelectorAll('.form-step');
+    steps.forEach((step) => {
+        const stepNum = parseInt(step.getAttribute('data-step'));
+        if (stepNum === currentStep) {
+            step.classList.add('active');
+        } else {
+            step.classList.remove('active');
+        }
+    });
+}
+
+function updateProgressBar() {
+    const progressFill = document.getElementById('step-progress-fill');
+    if (progressFill) {
+        const progress = (currentStep / totalSteps) * 100;
+        progressFill.style.width = progress + '%';
+    }
+}
+
+function updateStepIndicators() {
+    const indicators = document.querySelectorAll('.step-indicator');
+    indicators.forEach((indicator, index) => {
+        const stepNum = index + 1;
+        indicator.classList.remove('active', 'completed');
+        
+        if (stepNum === currentStep) {
+            indicator.classList.add('active');
+        } else if (stepNum < currentStep) {
+            indicator.classList.add('completed');
+        }
+    });
+}
+
+function validateStep(step) {
+    switch(step) {
+        case 1: // Name
+            const name = document.getElementById('name')?.value?.trim();
+            if (!name) {
+                return false;
+            }
+            return true;
+        case 2: // Age
+            const age = document.getElementById('age')?.value;
+            if (!age) {
+                showToast('Please select an age range', 'error');
+                return false;
+            }
+            return true;
+        case 3: // Gender (optional)
+            return true;
+        case 4: // Appearance (optional)
+            return true;
+        case 5: // Theme
+            const theme = document.getElementById('theme')?.value;
+            if (!theme) {
+                showToast('Please select a book theme', 'error');
+                return false;
+            }
+            return true;
+        case 6: // Book Type
+            const bookType = document.getElementById('book-type')?.value;
+            if (!bookType) {
+                showToast('Please select a book type', 'error');
+                return false;
+            }
+            return true;
+        case 7: // Tone
+            const tone = document.getElementById('tone')?.value;
+            if (!tone) {
+                showToast('Please select a narrative tone', 'error');
+                return false;
+            }
+            return true;
+        case 8: // Educational Message
+            const message = document.getElementById('main-topic')?.value;
+            if (!message) {
+                showToast('Please select an educational message', 'error');
+                return false;
+            }
+            return true;
+        case 9: // Language
+            const language = document.getElementById('language')?.value;
+            if (!language) {
+                showToast('Please select a language', 'error');
+                return false;
+            }
+            if (language === 'OTHER') {
+                const customLang = document.getElementById('language-custom')?.value?.trim();
+                if (!customLang) {
+                    showToast('Please enter a language name', 'error');
+                    return false;
+                }
+            }
+            return true;
+        case 10: // Gift Giver
+            const giver = document.getElementById('giver')?.value?.trim();
+            if (!giver) {
+                showToast('Please enter who is giving this book', 'error');
+                return false;
+            }
+            return true;
+        case 11: // Characters (optional)
+            return true;
+        case 12: // Visibility
+            return true;
+        default:
+            return true;
+    }
+}
+
+function setupGenderSelection() {
+    const genderInputs = document.querySelectorAll('input[name="gender"]');
+    genderInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            // Auto-advance after gender selection (optional field, so always valid)
+            setTimeout(() => {
+                if (currentStep === 3) {
+                    nextStep();
+                }
+            }, 300);
+        });
+    });
+}
+
+// Make functions globally available
+window.nextStep = nextStep;
+window.prevStep = prevStep;
+window.goToStep = goToStep;
