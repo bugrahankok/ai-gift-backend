@@ -1537,7 +1537,27 @@ function setupGenderSelection() {
     });
 }
 
+// Feature functions removed - now using static grid layout
+
+function goToCreateTab() {
+    const createTab = document.querySelector('[data-tab="create"]');
+    if (createTab) {
+        createTab.click();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function goToDiscoverTab() {
+    const discoverTab = document.querySelector('[data-tab="discover"]');
+    if (discoverTab) {
+        discoverTab.click();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
 // Make functions globally available
 window.nextStep = nextStep;
 window.prevStep = prevStep;
 window.goToStep = goToStep;
+window.goToCreateTab = goToCreateTab;
+window.goToDiscoverTab = goToDiscoverTab;
